@@ -137,17 +137,17 @@ for dlp in /proc/displowpower
 # scheduler
 for sch in /proc/sys/kernel
     do
-        echo 100000 > "$sch/sched_migration_cost_ns"
-        echo 25 > "$sch/perf_cpu_time_max_percent"
+        echo 1000000 > "$sch/sched_migration_cost_ns"
+        echo 35 > "$sch/perf_cpu_time_max_percent"
         echo 10000000 > "$sch/sched_latency_ns"
         echo 1024 > "$sch/sched_util_clamp_max"
-        echo 1024 > "$sch/sched_util_clamp_min"
-        echo 2 > "$sch/sched_tunable_scaling"
+        echo 100 > "$sch/sched_util_clamp_min"
+        echo 1 > "$sch/sched_tunable_scaling"
         echo 0 > "$sch/sched_child_runs_first"
         echo 1 > "$sch/sched_energy_aware"
         echo 8 > "$sch/sched_nr_migrate"
         echo 1 > "$sch/sched_pelt_multiplier"
-        echo 10 > "$sch/sched_util_clamp_min_rt_default"
+        echo 100 > "$sch/sched_util_clamp_min_rt_default"
         echo 4194304 > "$sch/sched_deadline_period_max_us"
         echo 100 > "$sch/sched_deadline_period_min_us"
         echo 0 > "$sch/sched_schedstats"
@@ -194,9 +194,9 @@ echo "on" > /sys/devices/system/cpu/power/control
 # VirtualMemory
 for vm in /proc/sys/vm
     do
-        echo 25 > "$vm/dirty_background_ratio"
+        echo 35 > "$vm/dirty_background_ratio"
         echo 30 > "$vm/dirty_ratio"
-        echo 40 > "$vm/vfs_cache_pressure"
+        echo 80 > "$vm/vfs_cache_pressure"
         echo 300 > "$vm/dirty_expire_centisecs"
         echo 500 > "$vm/dirty_writeback_centisecs"
         echo 0 > "$vm/oom_dump_tasks"
@@ -205,12 +205,12 @@ for vm in /proc/sys/vm
         echo 10 > "$vm/stat_interval"
         echo 1 > "$vm/compaction_proactiveness"
         echo 1 > "$vm/watermark_boost_factor"
-        echo 20 > "$vm/watermark_scale_factor"
+        echo 50 > "$vm/watermark_scale_factor"
         echo 2 > "$vm/drop_caches"
     done
     for sw in /dev/memcg
     do
-        echo 70 > "$sw/memory.swappiness"
+        echo 50 > "$sw/memory.swappiness"
         echo 35 > "$sw/apps/memory.swappiness"
         echo 35 > "$sw/system/memory.swappiness"
     done
