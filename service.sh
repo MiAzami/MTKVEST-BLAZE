@@ -37,7 +37,6 @@ case $mode in
 esac
 ui_print "Selected: $SC"
 
-
 # Variables
 ZRAMSIZE=0
 SWAPSIZE=0
@@ -107,9 +106,15 @@ disable_thermal()
 }
 
 # disable vsync
-vsync()
+dvsync()
 {
-    service call SurfaceFlinger 1036 i32 0
+    service call SurfaceFlinger 1035 i32 0
+}
+
+# disable vsync
+evsync()
+{
+    service call SurfaceFlinger 1035 i32 1
 }
 
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply Tweak, Waiting for some minutes...'" >/dev/null 2>&1
@@ -123,8 +128,11 @@ su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply T
 # skiavk
 #skiavk
 
-# disabke vsync
-#vsync
+# disable vsync
+#dvsync
+
+# enable vsync
+#evsync
 
 echo N > /sys/module/sync/parameters/fsync_enabled
 
@@ -146,15 +154,6 @@ echo "1" > /proc/sys/net/ipv4/tcp_low_latency
 echo "1" > /proc/sys/net/ipv4/tcp_ecn
 echo "1" > /proc/sys/net/ipv4/tcp_sack
 echo "1" > /proc/sys/net/ipv4/tcp_timestamps
-
-resetprop -n debug.sf.disable_client_composition_cache 1
-resetprop -n debug.sf.latch_unsignaled 1
-resetprop -n debug.sf.disable_backpressure 1
-resetprop -n debug.sf.enable_gl_backpressure 0
-resetprop -n debug.sf.enable_hwc_vds 1
-resetprop -n persist.sys.sf.native_mode 1
-resetprop -n debug.sf.hw 1
-resetprop -n debug.sf.enable_layer_caching 0
 
 sleep 5
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Tweak Applied'" >/dev/null 2>&1

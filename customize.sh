@@ -1,28 +1,17 @@
 #!/system/bin/sh
-
 ui_print ""
-ui_print "[         DEVICE INFO         ]"
-sleep 0.5
-ui_print "DEVICE : $(getprop ro.build.product) "
-ui_print "MODEL : $(getprop ro.product.model) "
-ui_print "MANUFACTURE : $(getprop ro.product.system.manufacturer) "
-ui_print "PROC : $(getprop ro.product.board) "
-ui_print "CPU : $(getprop ro.hardware) "
-ui_print "ANDROID VER : $(getprop ro.build.version.release) "
-ui_print "KERNEL : $(uname -r) "
-ui_print "RAM : $(free | grep Mem |  awk '{print $2}') "
+ui_print "█▀▄▀█ ▀█▀ █▄▀   █▄▄ █░░ ▄▀█ ▀█ █▀▀   ▀▄▀"
+ui_print "█░▀░█ ░█░ █░█   █▄█ █▄▄ █▀█ █▄ ██▄   █░█"
 ui_print ""
-sleep 1
-
-ui_print "[         MODULE INFO         ]"
+ui_print "       [         MODULE INFO         ]"
 sleep 0.5
-ui_print "Name : mtk.VEST- ver.暗い炎 "
-ui_print "Version : 1.1.4 (100) GORENDER "
+ui_print "Name           : mtk.VEST- ver.暗い炎 "
+ui_print "Version        : 1.1.4 (100) GORE "
 ui_print "Support Device : Helio G99 / Ultimate / Ultra "
-ui_print "Support Root : Magisk / KernelSU / APatch"
-ui_print "Release Date : 10/08/2024 "
-ui_print "Mod : @MiAzami"
-ui_print "Thanks to : who86, NotZeeta (App), Rem01gaming (code),Azazil (code), Riprog (support),Fastbooeteraselk (busybox), All Tester"
+ui_print "Support Root   : Magisk / KernelSU / APatch"
+ui_print "Release Date   : 10/08/2024 "
+ui_print "Mod           : @MiAzami"
+ui_print "Thanks to     : who86, NotZeeta (App), Rem01gaming (code),Azazil (code), Riprog (support),Fastbooeteraselk (busybox), All Tester"
 ui_print ""
 sleep 1
 # Install MTKVEST app
@@ -246,8 +235,8 @@ while true; do
 done
 ui_print "    Selected: $E"
 case $E in
-    1 ) TEXT5="Yes"; sed -i '/#vsync/s/.*/vsync/' $MODPATH/service.sh;;
-    2 ) TEXT5="No";;
+    1 ) TEXT5="Yes"; sed -i '/#dvsync/s/.*/dvsync/' $MODPATH/service.sh;;
+    2 ) TEXT5="No"; sed -i '/#evsync/s/.*/evsync/' $MODPATH/service.sh;;
 esac
 ui_print "    $TEXT5"
 ui_print ""
@@ -259,7 +248,7 @@ ui_print "  1) Install Busybox.       : $TEXT1"
 ui_print "  2) ZRAM                   : $TEXT2"
 ui_print "  3) Disable Thermal        : $TEXT3"
 ui_print "  4) Render Settings        : $TEXT4"
-ui_print "  5) Disable VSYNC          : $TEXT5"
+ui_print "  5) Disable VSYNC         : $TEXT5"
 ui_print " "
 ui_print "- Apply options"
 sleep 0.5
@@ -274,7 +263,6 @@ sleep 2
 ui_print "✅ セッティング Gaming Mode 🎮"
 sleep 2
 
-
 set_perm_recursive "$MODPATH/system/bin/game" root root 0755 0755
 set_perm_recursive "$MODPATH/system/bin/balance" root root 0755 0755
 set_perm_recursive "$MODPATH/system/bin/battery" root root 0755 0755
@@ -283,6 +271,16 @@ set_perm_recursive $MODPATH 0 0 0755 0644
 set_perm_recursive $MODPATH/vendor 0 0 0755 0755
 set_perm_recursive $MODPATH/system 0 0 0755 0755
 set_perm_recursive "$MODPATH/system/bin" root root 0755 0755
+
+# Check rewrite directory
+if [ ! -e /storage/emulated/0/MTK_VEST ]; then
+  mkdir /storage/emulated/0/MTK_VEST
+fi
+
+# Check applist file
+if [ ! -e /storage/emulated/0/MTK_VEST/applist_perf.txt ]; then
+  cp -f $MODPATH/auto/applist_perf.txt /storage/emulated/0/MTK_VEST
+fi
 
 nohup am start -a android.intent.action.VIEW -d https://t.me/mtkvestg99 >/dev/null 2>&1
 

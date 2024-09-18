@@ -164,57 +164,31 @@ do
     echo 1000000 > "$sch/sched_min_granularity_ns"
 done
 
-    for sda in /sys/block/sda/queue
-    do
-        echo 0 > "$sda/add_random"
-        echo 0 > "$sda/iostats"
-        echo 2 > "$sda/nomerges"
-        echo 2 > "$sda/rq_affinity"
-        echo 0 > "$sda/rotational"
-        echo 256 > "$sda/nr_requests"
-        echo 4096 > "$sda/read_ahead_kb"
-    done
-    for sdb in /sys/block/sdb/queue
-    do
-        echo 0 > "$sdb/add_random"
-        echo 0 > "$sdb/iostats"
-        echo 2 > "$sdb/nomerges"
-        echo 2 > "$sdb/rq_affinity"
-        echo 0 > "$sdb/rotational"
-        echo 256 > "$sdb/nr_requests"
-        echo 4096 > "$sdb/read_ahead_kb"
-    done
-    for sdc in /sys/block/sdc/queue
-    do
-        echo 0 > "$sdc/add_random"
-        echo 0 > "$sdc/iostats"
-        echo 2 > "$sdc/nomerges"
-        echo 2 > "$sdc/rq_affinity"
-        echo 0 > "$sdc/rotational"
-        echo 256 > "$sdc/nr_requests"
-        echo 4096 > "$sdc/read_ahead_kb"
-    done
-    for dm0 in /sys/block/dm-0/queue
-    do
-        echo 0 > "$dm0/add_random"
-        echo 0 > "$dm0/iostats"
-        echo 2 > "$dm0/nomerges"
-        echo 2 > "$dm0/rq_affinity"
-        echo 0 > "$dm0/rotational"
-        echo 256 > "$dm0/nr_requests"
-        echo 4096 > "$dm0/read_ahead_kb"
-    done
-        # I/O scheduler
-    for queue in /sys/block/*/queue
-    do
-        echo 4096 > "$queue/read_ahead_kb"
-        echo 256 > "$queue/nr_requests"
-        echo 2 > "$queue/rq_affinity"
-        echo 2 > "$dm0/nomerges"
-        echo 0 > "$queue/add_random"
-        echo 0 > "$queue/iostats"
-        echo 0 > "$dm0/rotational"
-    done
+for device in /sys/block/*
+do
+    # Skip if not a block device
+    if [ ! -d "$device/queue" ]; then
+        continue
+    fi
+
+    queue="$device/queue"
+    
+    # Check if the device is rotational (HDD) or non-rotational (SSD)
+    rotational=$(cat "$queue/rotational")
+
+    echo 0 > "$queue/add_random"
+    echo 0 > "$queue/iostats"
+    echo 2 > "$queue/nomerges"
+    echo 2 > "$queue/rq_affinity"
+    
+    # If the device is SSD (rotational = 0), apply SSD-specific settings
+    if [ "$rotational" -eq 0 ]; then
+        echo 0 > "$queue/rotational"
+    fi
+
+    echo 256 > "$queue/nr_requests"
+    echo 4096 > "$queue/read_ahead_kb"
+done
 
 # Power Level
 for pl in /sys/devices/system/cpu/perf
