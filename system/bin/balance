@@ -3,7 +3,7 @@
 
 sleep 1
 
-service call SurfaceFlinger 1008 i32 0
+service call SurfaceFlinger 1008 i32 1
 
 # GED Hal ( Kernel) 
 chmod 644 /sys/kernel/fpsgo/fbt/*
@@ -37,14 +37,14 @@ for gedh in /sys/kernel/ged/hal
 for gedp in /sys/module/ged/parameters
     do
         echo 1 > "$gedp/ged_smart_boost"
-        echo 0 > "$gedp/enable_gpu_boost"
-        echo 0 > "$gedp/ged_boost_enable"
+        echo 1 > "$gedp/enable_gpu_boost"
+        echo 1 > "$gedp/ged_boost_enable"
         echo 1 > "$gedp/boost_gpu_enable"
         echo 1 > "$gedp/is_GED_KPI_enabled"
         echo 0 > "$gedp/ged_monitor_3D_fence_disable"
         echo 0 > "$gedp/gpu_dvfs_enable"
         echo 0 > "$gedp/gx_fb_dvfs_margin"
-        echo 0 > "$gedp/gpu_idle"
+        echo 100 > "$gedp/gpu_idle"
 	done
 
 # FPSGo (PNPMGR) 
