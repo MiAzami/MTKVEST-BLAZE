@@ -75,13 +75,13 @@ pm.dexopt.bg-dexopt=speed-profile
 dalvik.vm.dexopt-flags=v=n,o=a,u=y,m=y
 
 # Early phase offsets
-debug.sf.early.app.duration=12500000
-debug.sf.early.sf.duration=14000000
-debug.sf.earlyGl.app.duration=21000000
-debug.sf.earlyGl.sf.duration=11500000
-debug.sf.late.app.duration=20000000
-debug.sf.late.sf.duration=10500000
-debug.sf.hwc.min.duration=1450000
+debug.sf.early.app.duration=25500000
+debug.sf.early.sf.duration=19000000
+debug.sf.earlyGl.app.duration=25000000
+debug.sf.earlyGl.sf.duration=19000000
+debug.sf.late.app.duration=25000000
+debug.sf.late.sf.duration=19000000
+debug.sf.hwc.min.duration=19000000
 
 # Set GPU Turbo Boost configurations
 debug.enabletr=true
@@ -119,12 +119,10 @@ persist.sys.gpu.rendering=1
 video.accelerate.hw=1
 ro.product.gpu.driver=1
 ro.kernel.qemu.gles=1
-debug.egl.hw=1
 
 # HWUI Compotitions
 debug.hwui.use_buffer_age=false
 ro.config.enable.hw_accel=true
-hw3d.force=1
 
 debug.sf.disable_client_composition_cache=1
 debug.sf.latch_unsignaled=1
@@ -134,5 +132,34 @@ debug.sf.enable_hwc_vds=1
 persist.sys.sf.native_mode=1
 debug.sf.hw=1
 debug.sf.enable_layer_caching=0
+debug.hwui.render_thread=true
+debug.skia.threaded_mode=true
+debug.hwui.render_thread_count=1
+debug.skia.num_render_threads=1
+debug.skia.render_thread_priority=1
+debug.skia.max_memory_usage_mb=512
+persist.sys.gpu.working_thread_priority=1
+debug.hwui.profile=true
+debug.hwui.profile.maxframes=120
+debug.hwui.show_dirty_regions=false
+debug.hwui.fps_divisor=1
+debug.hwui.show_non_rect_clip=false
+debug.hwui.webview_overlays_enabled=true
+renderthread.skia.reduceopstasksplitting=true
+debug.hwui.renderer=skiagl
+debug.hwui.use_hint_manager=false
+debug.hwui.target_cpu_time_percent=0
+debug.hwui.skia_tracing_enabled=false
+debug.hwui.skia_use_perfetto_track_events=false
+debug.hwui.capture_skp_enabled=false
+debug.hwui.trace_gpu_resources=false
+debug.hwui.show_layers_updates=false
+debug.hwui.skip_empty_damage=true
+debug.hwui.use_buffer_age=false
+debug.hwui.use_partial_updates=false
+debug.hwui.use_gpu_pixel_buffers=true
+debug.hwui.filter_test_overhead=false
+debug.hwui.overdraw=false
+debug.hwui.level=2
 ############################################
 
