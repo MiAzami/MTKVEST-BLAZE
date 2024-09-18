@@ -124,6 +124,7 @@ ro.kernel.qemu.gles=1
 debug.hwui.use_buffer_age=false
 ro.config.enable.hw_accel=true
 
+# Surfaceflinger
 debug.sf.disable_client_composition_cache=1
 debug.sf.latch_unsignaled=1
 debug.sf.disable_backpressure=1
