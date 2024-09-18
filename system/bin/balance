@@ -37,7 +37,7 @@ for gedh in /sys/kernel/ged/hal
 for gedp in /sys/module/ged/parameters
     do
         echo 1 > "$gedp/ged_smart_boost"
-        echo 0 > "$gedp/enable_gpu_boost"
+        echo 1 > "$gedp/enable_gpu_boost"
         echo 0 > "$gedp/ged_boost_enable"
         echo 0 > "$gedp/boost_gpu_enable"
         echo 0 > "$gedp/is_GED_KPI_enabled"
