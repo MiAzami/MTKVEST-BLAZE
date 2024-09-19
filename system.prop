@@ -141,7 +141,6 @@ debug.skia.render_thread_priority=1
 debug.skia.max_memory_usage_mb=512
 persist.sys.gpu.working_thread_priority=1
 debug.hwui.profile=true
-debug.hwui.profile.maxframes=120
 debug.hwui.show_dirty_regions=false
 debug.hwui.fps_divisor=1
 debug.hwui.show_non_rect_clip=false
