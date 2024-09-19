@@ -12,3 +12,10 @@ https://t.me/mtkvestg99
 - Enable GED GPU Parameter
 - Optimized Value higher Early Phase offsets
 - Added Prop Focues on GPU
+
+# V106
+
+- FIX Lock FPS
+
+# V107
+- Re-enable Early Surface
