@@ -74,22 +74,12 @@ persist.bg.dexopt.enable=true
 pm.dexopt.bg-dexopt=speed-profile
 dalvik.vm.dexopt-flags=v=n,o=a,u=y,m=y
 
-# Early phase offsets
-debug.sf.early.app.duration=25500000
-debug.sf.early.sf.duration=19000000
-debug.sf.earlyGl.app.duration=25000000
-debug.sf.earlyGl.sf.duration=19000000
-debug.sf.late.app.duration=25000000
-debug.sf.late.sf.duration=19000000
-debug.sf.hwc.min.duration=19000000
-
 # Set GPU Turbo Boost configurations
 debug.enabletr=true
 debug.performance.tuning=1
 hwui.render_dirty_regions=false
 ro.fb.mode=1
 debug.mdpcomp.logs=0
-persist.vendor.color.matrix=2
 vendor.gralloc.disable_ubwc=0
 debug.sf.hw=1
 persist.service.lgospd.enable=0
@@ -102,7 +92,6 @@ persist.sampling_profiler=1
 dev.pm.dyn_samplingrate=0
 persist.sys.sf.color_mode=0
 persist.sys.sf.color_saturation=1.0
-debug.sf.max_igbp_list_size=0
 
 # Rendering Compotitions GPU
 ro.sf.compbypass.enable=0
@@ -157,7 +146,7 @@ debug.hwui.show_layers_updates=false
 debug.hwui.skip_empty_damage=true
 debug.hwui.use_buffer_age=false
 debug.hwui.use_partial_updates=false
-debug.hwui.use_gpu_pixel_buffers=true
+debug.hwui.use_gpu_pixel_buffers=false
 debug.hwui.filter_test_overhead=false
 debug.hwui.overdraw=false
 debug.hwui.level=2
