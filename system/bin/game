@@ -224,8 +224,5 @@ for vm in /proc/sys/vm
         echo 55 > "$sw/system/memory.swappiness"
     done
 
-settings put system min_refresh_rate 120
-settings put system peak_refresh_rate 120
-
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' PERFORMANCE MODE ACTIVITED ⚡ ' >/dev/null 2>&1
 

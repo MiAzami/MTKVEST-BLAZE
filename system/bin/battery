@@ -222,8 +222,5 @@ echo "0-2" > /dev/cpuset/restricted/cpus
 echo "0-6" > /dev/cpuset/camera-daemon/cpus
 echo "0" > /dev/cpuset/memory_pressure_enabled
 
-settings put system min_refresh_rate 60
-settings put system peak_refresh_rate 60
-
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' BATTERY MODE ACTIVITED 🔋 ' >/dev/null 2>&1
 
