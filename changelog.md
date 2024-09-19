@@ -1,5 +1,7 @@
 Telegram channel:
 https://t.me/mtkvestg99
 
-# v108
-deleted prop debug.hwui.profile.maxframes=120
+# v109
+- Set Early SF by default
+- set false gou pixel buffer
+Reduce shuttering
