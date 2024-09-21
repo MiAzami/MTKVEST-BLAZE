@@ -10,40 +10,19 @@ ro.ril.disable.power.collapse=0
 pm.sleep_mode=1
 ro.config.hw_power_saving=true
 ro.ril.sensor.sleep.control=1
-
-ro.touch.delay=0
-ro.input.touchfilter.mode=1
-ro.input.touchfilter.delay=0
-ro.input.touchfilter.filter=0
-ro.touch.resample=1
-ro.touch.resample.duration=1
-persist.sys.use_dithering=1
 debug.performance.tuning=1
 
 #Additional
-persist.cpu.freq.boost=1
 PERF_RES_NET_BT_AUDIO_LOW_LATENCY=1
 PERF_RES_NET_WIFI_LOW_LATENCY=1
 PERF_RES_NET_MD_WEAK_SIG_OPT=1
 PERF_RES_NET_NETD_BOOST_UID=1
 PERF_RES_NET_MD_HSR_MODE=1
 
-#touch 
-windowsmgr.max_events_per_sec=100
-ro.min_pointer_dur=3
-touch.deviceType=touchScreen
-video.accelerate.hw=1
-view.scroll_friction=0
-logcat.live=disable
-persist.sys.scrollingcache=0
-touch.pressure.scale=0.1
-
 #dexoat
 dalvik.vm.systemuicompilerfilter=speed-profile 
 dalvik.vm.systemservercompilerfilter=speed-profile
-pm.dexopt.bg-dexopt=speed
 pm.dexopt.install=speed-profile
-pm.dexopt.shared=speed
 
 # Zygote
 persist.zygote.preload_threads=3
@@ -56,7 +35,6 @@ ro.mtk_perf_fast_start_win=1
 ro.mtk_perf_response_time=1
 ro.mtk_perf_simple_start_win=1
 
-# FUCKING SHIT BUILD PROP GIMMICK
 # Dalvik Hyperthread
 persist.sys.dalvik.multithread=true
 persist.sys.dalvik.hyperthreading=true
@@ -78,7 +56,6 @@ dalvik.vm.dexopt-flags=v=n,o=a,u=y,m=y
 debug.enabletr=true
 debug.performance.tuning=1
 hwui.render_dirty_regions=false
-ro.fb.mode=1
 debug.mdpcomp.logs=0
 vendor.gralloc.disable_ubwc=0
 debug.sf.hw=1
@@ -87,11 +64,7 @@ debug.composition.type=gpu
 persist.sys.composition.type=gpu
 debug.egl.hw=1
 debug.egl.profiler=1
-ro.vold.umsdirtyratio=80
 persist.sampling_profiler=1
-dev.pm.dyn_samplingrate=0
-persist.sys.sf.color_mode=0
-persist.sys.sf.color_saturation=1.0
 
 # Rendering Compotitions GPU
 ro.sf.compbypass.enable=0
@@ -106,8 +79,6 @@ persist.sys.ui.rendering=1
 debug.gralloc.gfx_ubwc_disable=1
 persist.sys.gpu.rendering=1
 video.accelerate.hw=1
-ro.product.gpu.driver=1
-ro.kernel.qemu.gles=1
 
 # HWUI Compotitions
 debug.hwui.use_buffer_age=false
@@ -128,7 +99,6 @@ debug.skia.threaded_mode=true
 debug.hwui.render_thread_count=1
 debug.skia.num_render_threads=1
 debug.skia.render_thread_priority=1
-debug.skia.max_memory_usage_mb=512
 persist.sys.gpu.working_thread_priority=1
 debug.hwui.profile=true
 debug.hwui.show_dirty_regions=false
@@ -137,8 +107,8 @@ debug.hwui.show_non_rect_clip=false
 debug.hwui.webview_overlays_enabled=true
 renderthread.skia.reduceopstasksplitting=true
 debug.hwui.renderer=skiagl
-debug.hwui.use_hint_manager=false
-debug.hwui.target_cpu_time_percent=0
+#debug.hwui.use_hint_manager=false
+#debug.hwui.target_cpu_time_percent=0
 debug.hwui.skia_tracing_enabled=false
 debug.hwui.skia_use_perfetto_track_events=false
 debug.hwui.capture_skp_enabled=false
