@@ -1,10 +1,6 @@
 #!/system/bin/sh
 #/magisk/modname/をハードコーディングしないでください...;代わりに $MODDIR ＃これにより、Magiskが将来マウントポイントを変更した場合でも、スクリプトに互換性があります。
 
-sleep 1
-
-service call SurfaceFlinger 1008 i32 1
-
 # GED Hal ( Kernel) 
 chmod 644 /sys/kernel/fpsgo/fstb/*
 for fbt in /sys/kernel/fpsgo/fstb
@@ -15,18 +11,9 @@ for fbt in /sys/kernel/fpsgo/fstb
     chmod 444 /sys/kernel/fpsgo/fstb/*
     
 # GED Hal ( Kernel) 
-chmod 644 /sys/kernel/fpsgo/fbt/*
-for fstb in /sys/kernel/fpsgo/fbt
-    do
-        echo 120 > "$fstb/set_render_max_fps"
-    chmod 444 /sys/kernel/fpsgo/fbt/*
-    done
-    
-# GED Hal ( Kernel) 
 for gedh in /sys/kernel/ged/hal
     do
         echo 95 > "$gedh/gpu_boost_level"
-        echo 8 > "$gedh/loading_base_dvfs_step"
     done
 
 # GED Parameter (Module) 
@@ -48,8 +35,6 @@ for pnp in /sys/pnpmgr
         echo 1 > "$pnp/fpsgo_boost/boost_mode"
         echo 1 > "$pnp/install"
         echo 1 > "$pnp/mwn"
-        echo 100 > "$pnp/fpsgo_boost/fstb/fstb_tune_quantile"
-        echo 120 > "$pnp/fpsgo_boost/fstb/fstb_fix_fps"
     done
     
 # MTKFPS GO Parameter
@@ -87,8 +72,8 @@ echo "00" > /proc/gpufreqv2/fix_target_opp_index
 echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
 
 # CPU SET
-chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
-chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
+chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
 for maf0 in /sys/devices/system/cpu
     do
         echo 20000000 > "$maf0/cpu0/cpufreq/scaling_max_freq"
@@ -117,18 +102,18 @@ for maf0 in /sys/devices/system/cpu
         echo 20000000 > "$mif6/cpu6/cpufreq/scaling_min_freq"
         echo 20000000 > "$mif6/cpu7/cpufreq/scaling_min_freq"
     done
-chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
-chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
+chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
 
 # CPU SET
 for cs in /dev/cpuset
     do
         echo 0-7 > "$cs/cpus"
-        echo 0-7 > "$cs/background/cpus"
+        echo 0-6 > "$cs/background/cpus"
         echo 0-3 > "$cs/system-background/cpus"
         echo 0-7 > "$cs/foreground/cpus"
         echo 0-7 > "$cs/top-app/cpus"
-        echo 0-3 > "$cs/restricted/cpus"
+        echo 0-5 > "$cs/restricted/cpus"
         echo 0-7 > "$cs/camera-daemon/cpus"
         echo 0 > "$cs/memory_pressure_enabled"
         echo 0 > "$cs/sched_load_balance"
@@ -146,18 +131,16 @@ for dlp in /proc/displowpower
 # scheduler
 for sch in /proc/sys/kernel
 do
-    echo 100000 > "$sch/sched_migration_cost_ns"
-    echo 5 > "$sch/perf_cpu_time_max_percent"
-    echo 200000 > "$sch/sched_latency_ns"
-    echo 1024 > "$sch/sched_util_clamp_max"
-    echo 512 > "$sch/sched_util_clamp_min"
+    echo 500000 > "$sch/sched_migration_cost_ns"
+    echo 10 > "$sch/perf_cpu_time_max_percent"
+    echo 10000000 > "$sch/sched_latency_ns"
+    echo 1000 > "$sch/sched_util_clamp_max"
+    echo 725 > "$sch/sched_util_clamp_min"
     echo 2 > "$sch/sched_tunable_scaling"
     echo 1 > "$sch/sched_child_runs_first"
     echo 0 > "$sch/sched_energy_aware"
-    echo 8 > "$sch/sched_nr_migrate"
-    echo 2 > "$sch/sched_pelt_multiplier"
-    echo 25 > "$sch/sched_util_clamp_min_rt_default"
-    echo 200 > "$sch/sched_deadline_period_max_us"
+    echo 250000 > "$sch/sched_util_clamp_min_rt_default"
+    echo 2000000 > "$sch/sched_deadline_period_max_us"
     echo 100 > "$sch/sched_deadline_period_min_us"
     echo 0 > "$sch/sched_schedstats"
     echo 3000000 > "$sch/sched_wakeup_granularity_ns"
@@ -186,8 +169,8 @@ do
         echo 0 > "$queue/rotational"
     fi
 
-    echo 256 > "$queue/nr_requests"
-    echo 4096 > "$queue/read_ahead_kb"
+    echo 128 > "$queue/nr_requests"
+    echo 2048 > "$queue/read_ahead_kb"
 done
 
 # Power Level
@@ -205,7 +188,7 @@ for vm in /proc/sys/vm
     do
         echo 10 > "$vm/dirty_background_ratio"
         echo 15 > "$vm/dirty_ratio"
-        echo 100 > "$vm/vfs_cache_pressure"
+        echo 150 > "$vm/vfs_cache_pressure"
         echo 3000 > "$vm/dirty_expire_centisecs"
         echo 5000 > "$vm/dirty_writeback_centisecs"
         echo 0 > "$vm/oom_dump_tasks"
@@ -214,14 +197,12 @@ for vm in /proc/sys/vm
         echo 10 > "$vm/stat_interval"
         echo 0 > "$vm/compaction_proactiveness"
         echo 1 > "$vm/watermark_boost_factor"
-        echo 100 > "$vm/watermark_scale_factor"
-        echo 3 > "$vm/drop_caches"
+        echo 30 > "$vm/watermark_scale_factor"
+        echo 2 > "$vm/drop_caches"
     done
     for sw in /dev/memcg
     do
         echo 30 > "$sw/memory.swappiness"
-        echo 30 > "$sw/apps/memory.swappiness"
-        echo 55 > "$sw/system/memory.swappiness"
     done
 
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' PERFORMANCE MODE ACTIVITED ⚡ ' >/dev/null 2>&1
