@@ -85,7 +85,6 @@ skiagl()
     resetprop -n debug.hwui.render_thread_count 1
     resetprop -n debug.skia.num_render_threads 1
     resetprop -n debug.skia.render_thread_priority 1
-    resetprop -n debug.skia.max_memory_usage_mb 512
     resetprop -n persist.sys.gpu.working_thread_priority 1
 }
 
@@ -117,6 +116,45 @@ evsync()
     service call SurfaceFlinger 1035 i32 1
 }
 
+# disable overlay HW
+doverlay()
+{
+    service call SurfaceFlinger 1008 i32 1
+}
+
+# enable overlay HW
+eoverlay()
+{
+    service call SurfaceFlinger 1008 i32 0
+}
+
+# Advanced FPSGO Settings
+fpsgo()
+{
+    echo "15" > /sys/module/mtk_fpsgo/parameters/bhr_opp
+    echo "0" > /sys/module/mtk_fpsgo/parameters/bhr_opp_l
+    echo "1" > /sys/module/mtk_fpsgo/parameters/boost_affinity
+    echo "1" > /sys/module/mtk_fpsgo/parameters/xgf_uboost
+    echo "90" > /sys/module/mtk_fpsgo/parameters/uboost_enhance_f
+    echo "1" > /sys/module/mtk_fpsgo/parameters/gcc_fps_margin
+    echo "90" > /sys/module/mtk_fpsgo/parameters/rescue_enhance_f
+    echo "1" > /sys/module/mtk_fpsgo/parameters/qr_mod_frame
+    echo "1" > /sys/module/mtk_fpsgo/parameters/fstb_separate_runtime_enable
+    echo "1" > /sys/module/mtk_fpsgo/parameters/fstb_consider_deq
+    echo "5" > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_quantile
+    echo "0" > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_error_threshold
+    echo "1" > /sys/pnpmgr/fpsgo_boost/fstb/margin_mode
+    echo "15" > /sys/pnpmgr/fpsgo_boost/fbt/bhr_opp
+    echo "1" > /sys/pnpmgr/fpsgo_boost/fbt/adjust_loading
+    echo "1" > /sys/pnpmgr/fpsgo_boost/fbt/dyn_tgt_time_en
+    echo "0" > /sys/pnpmgr/fpsgo_boost/fbt/floor_opp
+    echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_enhance_f
+    echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_opp_c
+    echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_opp_f
+    echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_percent
+    echo "1" > /sys/pnpmgr/fpsgo_boost/fbt/ultra_rescue
+}
+
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply Tweak, Waiting for some minutes...'" >/dev/null 2>&1
 
 # Change zram
@@ -133,6 +171,15 @@ su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply T
 
 # enable vsync
 #evsync
+
+# enable overlay HW
+#eoverlay
+
+# disable overlay HW
+#doverlay
+
+# fpsgo
+#fpsgo
 
 echo N > /sys/module/sync/parameters/fsync_enabled
 
@@ -154,6 +201,7 @@ echo "1" > /proc/sys/net/ipv4/tcp_low_latency
 echo "1" > /proc/sys/net/ipv4/tcp_ecn
 echo "1" > /proc/sys/net/ipv4/tcp_sack
 echo "1" > /proc/sys/net/ipv4/tcp_timestamps
+echo "3" > /proc/sys/net/ipv4/tcp_fastopen
 
 sleep 5
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Tweak Applied'" >/dev/null 2>&1
