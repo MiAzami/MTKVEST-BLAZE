@@ -105,7 +105,6 @@ debug.hwui.fps_divisor=1
 debug.hwui.show_non_rect_clip=false
 debug.hwui.webview_overlays_enabled=true
 renderthread.skia.reduceopstasksplitting=true
-debug.hwui.renderer=skiagl
 #debug.hwui.use_hint_manager=false
 #debug.hwui.target_cpu_time_percent=0
 debug.hwui.skia_tracing_enabled=false
