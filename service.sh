@@ -183,6 +183,51 @@ su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply T
 
 echo N > /sys/module/sync/parameters/fsync_enabled
 
+# GED Hal ( Kernel) 
+chmod 644 /sys/kernel/fpsgo/fstb/*
+for fbt in /sys/kernel/fpsgo/fstb
+    do
+        echo 95 > "$fbt/boost_ta"
+        echo 0 > "$fbt/enable_switch_sync_flag"
+    done
+    chmod 444 /sys/kernel/fpsgo/fstb/*
+    
+# GED Hal ( Kernel) 
+for gedh in /sys/kernel/ged/hal
+    do
+        echo 95 > "$gedh/gpu_boost_level"
+    done
+
+# GED Parameter (Module) 
+for gedp in /sys/module/ged/parameters
+    do
+        echo 95 > "$gedp/ged_smart_boost"
+        echo 1 > "$gedp/enable_gpu_boost"
+        echo 1 > "$gedp/ged_boost_enable"
+        echo 1 > "$gedp/boost_gpu_enable"
+        echo 1 > "$gedp/gpu_dvfs_enable"
+        echo 95 > "$gedp/gx_fb_dvfs_margin"
+        echo 10 > "$gedp/gpu_idle"
+        echo 0 > "$gedp/is_GED_KPI_enabled"
+	done
+
+# FPSGo (PNPMGR) 
+for pnp in /sys/pnpmgr
+    do
+        echo 1 > "$pnp/fpsgo_boost/boost_mode"
+        echo 1 > "$pnp/install"
+        echo 1 > "$pnp/mwn"
+    done
+    
+# MTKFPS GO Parameter
+for fpsp in /sys/module/mtk_fpsgo/parameters
+    do
+        echo 95 > "$fpsp/boost_affinity"
+        echo 95 > "$fpsp/boost_LR"
+        echo 95 > "$fpsp/xgf_uboost"
+    done
+
+
 # Scheduler I/O
 echo "deadline" > /sys/block/sda/queue/scheduler
 echo "deadline" > /sys/block/sdb/queue/scheduler
