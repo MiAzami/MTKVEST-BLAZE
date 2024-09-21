@@ -110,12 +110,6 @@ dvsync()
     service call SurfaceFlinger 1035 i32 0
 }
 
-# disable vsync
-evsync()
-{
-    service call SurfaceFlinger 1035 i32 1
-}
-
 # disable overlay HW
 doverlay()
 {
@@ -168,9 +162,6 @@ su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply T
 
 # disable vsync
 #dvsync
-
-# enable vsync
-#evsync
 
 # enable overlay HW
 #eoverlay
