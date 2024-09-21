@@ -93,7 +93,6 @@ debug.sf.enable_gl_backpressure=0
 debug.sf.enable_hwc_vds=1
 persist.sys.sf.native_mode=1
 debug.sf.hw=1
-debug.sf.enable_layer_caching=0
 debug.hwui.render_thread=true
 debug.skia.threaded_mode=true
 debug.hwui.render_thread_count=1
