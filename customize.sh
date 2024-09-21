@@ -1,12 +1,10 @@
 #!/system/bin/sh
-ui_print ""
-ui_print "█▀▄▀█ ▀█▀ █▄▀   █▄▄ █░░ ▄▀█ ▀█ █▀▀   ▀▄▀"
-ui_print "█░▀░█ ░█░ █░█   █▄█ █▄▄ █▀█ █▄ ██▄   █░█"
+
 ui_print ""
 ui_print "       [         MODULE INFO         ]"
 sleep 0.5
 ui_print "Name           : mtk.VEST- ver.暗い炎 "
-ui_print "Version        : 1.1.4 (100) GORE "
+ui_print "Version        : 1.1.4 (110) GORE "
 ui_print "Support Device : Helio G99 / Ultimate / Ultra "
 ui_print "Support Root   : Magisk / KernelSU / APatch"
 ui_print "Release Date   : 10/08/2024 "
@@ -41,6 +39,8 @@ ui_print "  2) ZRAM"
 ui_print "  3) Disable Thermal"
 ui_print "  4) Render Settings"
 ui_print "  5) Disable V-Sync"
+ui_print "  6) Disable HW Overlays"
+ui_print "  7) Advanced FPSGO"
 ui_print ""
 ui_print "  Button Function:"
 ui_print "  • Volume + (Next)"
@@ -189,8 +189,8 @@ ui_print ""
 
 # Built-in busybox
 ui_print "  ⚙️ Render Settings.."
-ui_print "    1. SkiaVKThreaded"
-ui_print "    2. SkiaGLThreaded"
+ui_print "    1. SkiaVKThreadedV4"
+ui_print "    2. SkiaGLThreadedV5"
 ui_print "    3. Skip Install"
 ui_print ""
 ui_print "    Select:"
@@ -215,10 +215,11 @@ esac
 ui_print "    $TEXT4"
 ui_print ""
 
-# Built-in busybox
+# DISABLE VSYNC
 ui_print "  ⚙️ Disable V-Sync..."
 ui_print "    1. Yes"
 ui_print "    2. No"
+ui_print "    CAUTION!! MAYBE MAKE YOUR FPS NOT STABLE"
 ui_print ""
 ui_print "    Select:"
 E=1
@@ -241,6 +242,58 @@ esac
 ui_print "    $TEXT5"
 ui_print ""
 
+# DISABLE HW OVERLAYS
+ui_print "  ⚙️ Disable HW Overlays..."
+ui_print "    1. Yes"
+ui_print "    2. No"
+ui_print "    CAUTION!! WILL DRAIN YOUR BATTERY"
+ui_print ""
+ui_print "    Select:"
+F=1
+while true; do
+    ui_print "    $F"
+    if $VKSEL; then
+        F=$((F + 1))
+    else
+        break
+    fi
+    if [ $F -gt 2 ]; then
+        F=1
+    fi
+done
+ui_print "    Selected: $F"
+case $F in
+    1 ) TEXT6="Yes"; sed -i '/#doverlay/s/.*/doverlay/' $MODPATH/service.sh;;
+    2 ) TEXT6="No"; sed -i '/#eoverlay/s/.*/eoverlay/' $MODPATH/service.sh;;
+esac
+ui_print "    $TEXT6"
+ui_print ""
+
+# FPSGO
+ui_print "  ⚡️ Enable Advanced FPSGO Settings..."
+ui_print "    1. Yes"
+ui_print "    2. No"
+ui_print ""
+ui_print "    Select:"
+G=1
+while true; do
+    ui_print "    $G"
+    if $VKSEL; then
+        G=$((G + 1))
+    else
+        break
+    fi
+    if [ $G -gt 2 ]; then
+        G=1
+    fi
+done
+ui_print "    Selected: $G"
+case $G in
+    1 ) TEXT7="Yes"; sed -i '/#fpsgo/s/.*/fpsgo/' $MODPATH/service.sh;;
+    2 ) TEXT7="No";;
+esac
+ui_print "    $TEXT7"
+ui_print ""
 
 sleep 2
 ui_print "  Your settings:"
@@ -248,7 +301,9 @@ ui_print "  1) Install Busybox.       : $TEXT1"
 ui_print "  2) ZRAM                   : $TEXT2"
 ui_print "  3) Disable Thermal        : $TEXT3"
 ui_print "  4) Render Settings        : $TEXT4"
-ui_print "  5) Disable VSYNC         : $TEXT5"
+ui_print "  5) Disable VSYNC          : $TEXT5"
+ui_print "  6) Disable HW Overlays    : $TEXT6"
+ui_print "  7) Advanced FPSGO         : $TEXT7"
 ui_print " "
 ui_print "- Apply options"
 sleep 0.5
@@ -282,6 +337,8 @@ if [ ! -e /storage/emulated/0/MTK_VEST/applist_perf.txt ]; then
   cp -f $MODPATH/auto/applist_perf.txt /storage/emulated/0/MTK_VEST
 fi
 
+ui_print "  JOIN US FOR THE UPDATE"
+sleep 2
 nohup am start -a android.intent.action.VIEW -d https://t.me/mtkvestg99 >/dev/null 2>&1
 
 ui_print "==============================="
