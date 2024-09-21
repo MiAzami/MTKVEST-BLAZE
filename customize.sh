@@ -4,7 +4,7 @@ ui_print ""
 ui_print "       [         MODULE INFO         ]"
 sleep 0.5
 ui_print "Name           : mtk.VEST- ver.暗い炎 "
-ui_print "Version        : 1.1.4 (110) GORE "
+ui_print "Version        : 1.1.4 (111) GORE "
 ui_print "Support Device : Helio G99 / Ultimate / Ultra "
 ui_print "Support Root   : Magisk / KernelSU / APatch"
 ui_print "Release Date   : 10/08/2024 "
@@ -95,7 +95,7 @@ deploy
 ui_print "  📦 Install busybox..."
 ui_print "    1. Yes"
 ui_print "    2. Uninstall Busybox"
-ui_print "    3. No"
+ui_print "    3. No / Skip Install"
 ui_print ""
 ui_print "    Select:"
 A=1
@@ -218,7 +218,7 @@ ui_print ""
 # DISABLE VSYNC
 ui_print "  ⚙️ Disable V-Sync..."
 ui_print "    1. Yes"
-ui_print "    2. No"
+ui_print "    2. No / Skip Install"
 ui_print "    CAUTION!! MAYBE MAKE YOUR FPS NOT STABLE"
 ui_print ""
 ui_print "    Select:"
@@ -237,7 +237,7 @@ done
 ui_print "    Selected: $E"
 case $E in
     1 ) TEXT5="Yes"; sed -i '/#dvsync/s/.*/dvsync/' $MODPATH/service.sh;;
-    2 ) TEXT5="No"; sed -i '/#evsync/s/.*/evsync/' $MODPATH/service.sh;;
+    2 ) TEXT5="No / Skip Install";;
 esac
 ui_print "    $TEXT5"
 ui_print ""
@@ -272,7 +272,7 @@ ui_print ""
 # FPSGO
 ui_print "  ⚡️ Enable Advanced FPSGO Settings..."
 ui_print "    1. Yes"
-ui_print "    2. No"
+ui_print "    2. No / Skip Install"
 ui_print ""
 ui_print "    Select:"
 G=1
