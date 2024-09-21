@@ -10,3 +10,6 @@ https://t.me/mtkvestg99
 - Used Default CPU Percent 
 - Deleted Prop Touch 
 - Deleted Some function prop
+
+# v111
+- Fix FPS 
