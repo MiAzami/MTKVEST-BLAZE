@@ -38,9 +38,8 @@ ui_print "  1) Install Busybox"
 ui_print "  2) ZRAM"
 ui_print "  3) Disable Thermal"
 ui_print "  4) Render Settings"
-ui_print "  5) Disable V-Sync"
-ui_print "  6) Disable HW Overlays"
-ui_print "  7) Advanced FPSGO"
+ui_print "  5) Disable HW Overlays"
+ui_print "  6) Advanced FPSGO"
 ui_print ""
 ui_print "  Button Function:"
 ui_print "  • Volume + (Next)"
@@ -215,11 +214,11 @@ esac
 ui_print "    $TEXT4"
 ui_print ""
 
-# DISABLE VSYNC
-ui_print "  ⚙️ Disable V-Sync..."
+# DISABLE HW OVERLAYS
+ui_print "  ⚙️ Disable HW Overlays..."
 ui_print "    1. Yes"
-ui_print "    2. No / Skip Install"
-ui_print "    CAUTION!! MAYBE MAKE YOUR FPS NOT STABLE"
+ui_print "    2. No"
+ui_print "    CAUTION!! WILL DRAIN YOUR BATTERY"
 ui_print ""
 ui_print "    Select:"
 E=1
@@ -236,17 +235,16 @@ while true; do
 done
 ui_print "    Selected: $E"
 case $E in
-    1 ) TEXT5="Yes"; sed -i '/#dvsync/s/.*/dvsync/' $MODPATH/service.sh;;
-    2 ) TEXT5="No / Skip Install";;
+    1 ) TEXT5="Yes"; sed -i '/#doverlay/s/.*/doverlay/' $MODPATH/service.sh;;
+    2 ) TEXT5="No"; sed -i '/#eoverlay/s/.*/eoverlay/' $MODPATH/service.sh;;
 esac
 ui_print "    $TEXT5"
 ui_print ""
 
-# DISABLE HW OVERLAYS
-ui_print "  ⚙️ Disable HW Overlays..."
+# FPSGO
+ui_print "  ⚡️ Enable Advanced FPSGO Settings..."
 ui_print "    1. Yes"
-ui_print "    2. No"
-ui_print "    CAUTION!! WILL DRAIN YOUR BATTERY"
+ui_print "    2. No / Skip Install"
 ui_print ""
 ui_print "    Select:"
 F=1
@@ -263,36 +261,10 @@ while true; do
 done
 ui_print "    Selected: $F"
 case $F in
-    1 ) TEXT6="Yes"; sed -i '/#doverlay/s/.*/doverlay/' $MODPATH/service.sh;;
-    2 ) TEXT6="No"; sed -i '/#eoverlay/s/.*/eoverlay/' $MODPATH/service.sh;;
+    1 ) TEXT6="Yes"; sed -i '/#fpsgo/s/.*/fpsgo/' $MODPATH/service.sh;;
+    2 ) TEXT6="No";;
 esac
 ui_print "    $TEXT6"
-ui_print ""
-
-# FPSGO
-ui_print "  ⚡️ Enable Advanced FPSGO Settings..."
-ui_print "    1. Yes"
-ui_print "    2. No / Skip Install"
-ui_print ""
-ui_print "    Select:"
-G=1
-while true; do
-    ui_print "    $G"
-    if $VKSEL; then
-        G=$((G + 1))
-    else
-        break
-    fi
-    if [ $G -gt 2 ]; then
-        G=1
-    fi
-done
-ui_print "    Selected: $G"
-case $G in
-    1 ) TEXT7="Yes"; sed -i '/#fpsgo/s/.*/fpsgo/' $MODPATH/service.sh;;
-    2 ) TEXT7="No";;
-esac
-ui_print "    $TEXT7"
 ui_print ""
 
 sleep 2
@@ -301,9 +273,8 @@ ui_print "  1) Install Busybox.       : $TEXT1"
 ui_print "  2) ZRAM                   : $TEXT2"
 ui_print "  3) Disable Thermal        : $TEXT3"
 ui_print "  4) Render Settings        : $TEXT4"
-ui_print "  5) Disable VSYNC          : $TEXT5"
-ui_print "  6) Disable HW Overlays    : $TEXT6"
-ui_print "  7) Advanced FPSGO         : $TEXT7"
+ui_print "  6) Disable HW Overlays    : $TEXT5"
+ui_print "  7) Advanced FPSGO         : $TEXT6"
 ui_print " "
 ui_print "- Apply options"
 sleep 0.5
