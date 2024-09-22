@@ -4,7 +4,7 @@ ui_print ""
 ui_print "       [         MODULE INFO         ]"
 sleep 0.5
 ui_print "Name           : mtk.VEST- ver.暗い炎 "
-ui_print "Version        : 1.1.4 (111) GORE "
+ui_print "Version        : 1.1.4 (112) GORE "
 ui_print "Support Device : Helio G99 / Ultimate / Ultra "
 ui_print "Support Root   : Magisk / KernelSU / APatch"
 ui_print "Release Date   : 10/08/2024 "
