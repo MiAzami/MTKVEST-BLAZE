@@ -104,12 +104,6 @@ disable_thermal()
     for a in $(getprop|grep thermal|cut -f1 -d]|cut -f2 -d[|grep -F init.svc.|sed 's/init.svc.//');do stop $a;done;for b in $(getprop|grep thermal|cut -f1 -d]|cut -f2 -d[|grep -F init.svc.);do setprop $b stopped;done;for c in $(getprop|grep thermal|cut -f1 -d]|cut -f2 -d[|grep -F init.svc_);do setprop $c "";done;for e in $(find /sys/ -name throttling);do echo 0>"$e";done;for d in $(getprop|grep init.svc|grep -E "logd|thermal"|cut -d[ -f2|cut -d] -f1);do stop "$(echo $d|cut -d. -f3)";resetprop -n "$d" stopped;done
 }
 
-# disable vsync
-dvsync()
-{
-    service call SurfaceFlinger 1035 i32 0
-}
-
 # disable overlay HW
 doverlay()
 {
@@ -159,9 +153,6 @@ su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST Blaze' tag 'Apply T
 
 # skiavk
 #skiavk
-
-# disable vsync
-#dvsync
 
 # enable overlay HW
 #eoverlay
