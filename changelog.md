@@ -13,3 +13,6 @@ https://t.me/mtkvestg99
 
 # v111
 - Fix FPS 
+
+# v112
+- Deleted VSYNC
