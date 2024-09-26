@@ -1,5 +1,3 @@
-#!/system/bin/sh
-#/magisk/modname/をハードコーディングしないでください...;代わりに $MODDIR ＃これにより、Magiskが将来マウントポイントを変更した場合でも、スクリプトに互換性があります。
 
 for cpu in /sys/devices/system/cpu/cpu[0-7]; do
     echo 1 > "$cpu/online"
@@ -30,13 +28,27 @@ echo 0 > /proc/ppm/enabled
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
 for cpu in /sys/devices/system/cpu/cpu[0-6]; do
-    echo 99999999 > "$cpu/cpufreq/scaling_max_freq"
+    echo 20000000 > "$cpu/cpufreq/scaling_max_freq"
 done
 for cpu in /sys/devices/system/cpu/cpu[0-6]; do
-    echo 99999999 > "$cpu/cpufreq/scaling_min_freq"
+    echo 20000000 > "$cpu/cpufreq/scaling_min_freq"
 done
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+
+if [ -f "/proc/gpufreq/gpufreq_limit_table" ]; then
+    echo "ignore_batt_oc 1" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_percent 1" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_low 1" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_thermal 1" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_pbm 1" >> /proc/gpufreq/gpufreq_limit_table
+fi
+
+echo 0 > /sys/devices/system/cpu/eas/enable
+echo 3 > /proc/cpufreq/cpufreq_power_mode
+echo 1 > /proc/cpufreq/cpufreq_cci_mode
+echo 1 > /proc/cpufreq/cpufreq_sched_disable
+echo 0 > /proc/gpufreq/gpufreq_power_limited
 
 # CPU SET
 for cs in /dev/cpuset
@@ -68,7 +80,7 @@ do
     echo 10 > "$sch/perf_cpu_time_max_percent"
     echo 10000000 > "$sch/sched_latency_ns"
     echo 1000 > "$sch/sched_util_clamp_max"
-    echo 725 > "$sch/sched_util_clamp_min"
+    echo 512 > "$sch/sched_util_clamp_min"
     echo 2 > "$sch/sched_tunable_scaling"
     echo 1 > "$sch/sched_child_runs_first"
     echo 0 > "$sch/sched_energy_aware"
@@ -82,28 +94,20 @@ done
 
 for device in /sys/block/*
 do
-    # Skip if not a block device
     if [ ! -d "$device/queue" ]; then
         continue
     fi
-
     queue="$device/queue"
-    
-    # Check if the device is rotational (HDD) or non-rotational (SSD)
     rotational=$(cat "$queue/rotational")
-
     echo 0 > "$queue/add_random"
     echo 0 > "$queue/iostats"
     echo 2 > "$queue/nomerges"
     echo 2 > "$queue/rq_affinity"
-    
-    # If the device is SSD (rotational = 0), apply SSD-specific settings
     if [ "$rotational" -eq 0 ]; then
         echo 0 > "$queue/rotational"
     fi
-
     echo 128 > "$queue/nr_requests"
-    echo 2048 > "$queue/read_ahead_kb"
+    echo 4096 > "$queue/read_ahead_kb"
 done
 
 # Power Level
@@ -121,7 +125,7 @@ for vm in /proc/sys/vm
     do
         echo 10 > "$vm/dirty_background_ratio"
         echo 15 > "$vm/dirty_ratio"
-        echo 150 > "$vm/vfs_cache_pressure"
+        echo 180 > "$vm/vfs_cache_pressure"
         echo 3000 > "$vm/dirty_expire_centisecs"
         echo 5000 > "$vm/dirty_writeback_centisecs"
         echo 0 > "$vm/oom_dump_tasks"
@@ -138,5 +142,4 @@ for vm in /proc/sys/vm
         echo 30 > "$sw/memory.swappiness"
     done
 
-su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' PERFORMANCE MODE ACTIVITED ⚡ ' >/dev/null 2>&1
 

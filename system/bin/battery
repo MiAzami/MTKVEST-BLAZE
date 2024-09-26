@@ -1,55 +1,54 @@
-#!/system/bin/sh
-#/magisk/modname/をハードコーディングしないでください...;代わりに $MODDIR ＃これにより、Magiskが将来マウントポイントを変更した場合でも、スクリプトに互換性があります
 
-# CPU SET
+for cpu in /sys/devices/system/cpu/cpu[2-3]; do
+    echo 1 > "$cpu/online"
+done
+    
+for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+    chmod 644 "$policy/scaling_governor"
+    echo "powersave" > "$policy/scaling_governor"
+done
+
+for device in /sys/class/devfreq/*; do
+    if [ -f "$device/governor" ]; then
+        chmod 644 "$device/governor"
+        echo "powersave" > "$device/governor"
+    fi
+done
+
+if [ -d /proc/gpufreq ]; then
+	gpu_freq="$(cat /proc/gpufreq/gpufreq_opp_dump | grep -o 'freq = [0-9]*' | sed 's/freq = //' | sort -nr | head -n 1)"
+	apply "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
+elif [ -d /proc/gpufreqv2 ]; then
+	apply 0 /proc/gpufreqv2/fix_target_opp_index
+fi
+
+echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
+echo 1 > /proc/ppm/enabled
+
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
-for maf0 in /sys/devices/system/cpu
-    do
-        echo 1500000 > "$maf0/cpu0/cpufreq/scaling_max_freq"
-        echo 1300000 > "$maf0/cpu1/cpufreq/scaling_max_freq"
-        echo 1300000 > "$maf0/cpu2/cpufreq/scaling_max_freq"
-        echo 1300000 > "$maf0/cpu3/cpufreq/scaling_max_freq"
-        echo 1300000 > "$maf0/cpu4/cpufreq/scaling_max_freq"
-        echo 1300000 > "$maf0/cpu5/cpufreq/scaling_max_freq"
-    done
-    for mif0 in /sys/devices/system/cpu
-    do
-        echo 500000 > "$mif0/cpu0/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu1/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu2/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu3/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu4/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu5/cpufreq/scaling_min_freq"
-    done
-    for maf6 in /sys/devices/system/cpu
-    do
-        echo 22000000 > "$maf6/cpu6/cpufreq/scaling_max_freq"
-        echo 22000000 > "$maf6/cpu7/cpufreq/scaling_max_freq"
-    done
-    for mif6 in /sys/devices/system/cpu
-    do
-        echo 725000 > "$mif6/cpu6/cpufreq/scaling_min_freq"
-        echo 725000 > "$mif6/cpu7/cpufreq/scaling_min_freq"
-    done
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 1300000 > "$cpu/cpufreq/scaling_max_freq"
+done
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 1300000 > "$cpu/cpufreq/scaling_min_freq"
+done
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
 
-# Online
-echo "0" > /sys/devices/system/cpu/cpu2/online
-echo "0" > /sys/devices/system/cpu/cpu3/online
+if [ -f "/proc/gpufreq/gpufreq_limit_table" ]; then
+    echo "ignore_batt_oc 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_percent 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_low 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_thermal 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_pbm 0" >> /proc/gpufreq/gpufreq_limit_table
+fi
 
-# GPU Configure
-echo "-1" > /proc/gpufreqv2/fix_target_opp_index
-
-# cpu parameters
-chmod 644 /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo "powersave" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-chmod 644 /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo "powersave" > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo "powersave" > /sys/class/devfreq/mtk-dvfsrc-devfreq/governor
-echo "powersave" > /sys/class/devfreq/13000000.mali/governor
-echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
+echo 1 > /sys/devices/system/cpu/eas/enable
+echo 1 > /proc/cpufreq/cpufreq_power_mode
+echo 0 > /proc/cpufreq/cpufreq_cci_mode
+echo 0 > /proc/cpufreq/cpufreq_sched_disable
+echo 1 > /proc/gpufreq/gpufreq_power_limited
 
 #dislowpower
 echo "1" > /proc/displowpower/hrt_lp
@@ -57,108 +56,82 @@ echo "1" > /proc/displowpower/idlevfp
 echo "50" > /proc/displowpower/idletime
 
 # scheduler
+for sch in /proc/sys/kernel
+    do
+        echo 1000 > "$sch/sched_migration_cost_ns"
+        echo 75 > "$sch/perf_cpu_time_max_percent"
+        echo 100000 > "$sch/sched_latency_ns"
+        echo 256 > "$sch/sched_util_clamp_max"
+        echo 100 > "$sch/sched_util_clamp_min"
+        echo 1 > "$sch/sched_tunable_scaling"
+        echo 1 > "$sch/sched_child_runs_first"
+        echo 1 > "$sch/sched_energy_aware"
+        echo 10000 > "$sch/sched_util_clamp_min_rt_default"
+        echo 4194304 > "$sch/sched_deadline_period_max_us"
+        echo 100 > "$sch/sched_deadline_period_min_us"
+        echo 0 > "$sch/sched_schedstats"
+        echo 300000 > "$sch/sched_wakeup_granularity_ns"
+        echo 30000 > "$sch/sched_min_granularity_ns"
+    done
 
-echo "2" > /proc/sys/vm/drop_caches
-echo "1" > /proc/sys/kernel/sched_migration_cost_ns
-echo "75" > /proc/sys/kernel/perf_cpu_time_max_percent
-echo "1000000" > /proc/sys/kernel/sched_latency_ns
-echo "256" > /proc/sys/kernel/sched_util_clamp_max
-echo "256" > /proc/sys/kernel/sched_util_clamp_min
-echo "1" > /proc/sys/kernel/sched_child_runs_first
-echo "1" > /proc/sys/kernel/sched_tunable_scaling
-echo "1" > /proc/sys/kernel/sched_energy_aware
-echo "1" > /proc/sys/kernel/sched_util_clamp_min_rt_default
-echo "2000000" > /proc/sys/kernel/sched_deadline_period_max_us
-echo "200000" > /proc/sys/kernel/sched_deadline_period_min_us
-
-    for sda in /sys/block/sda/queue
-    do
-        echo 0 > "$sda/add_random"
-        echo 0 > "$sda/iostats"
-        echo 2 > "$sda/nomerges"
-        echo 2 > "$sda/rq_affinity"
-        echo 0 > "$sda/rotational"
-        echo 128 > "$sda/nr_requests"
-        echo 512 > "$sda/read_ahead_kb"
-    done
-    for sdb in /sys/block/sdb/queue
-    do
-        echo 0 > "$sdb/add_random"
-        echo 0 > "$sdb/iostats"
-        echo 2 > "$sdb/nomerges"
-        echo 2 > "$sdb/rq_affinity"
-        echo 0 > "$sdb/rotational"
-        echo 128 > "$sdb/nr_requests"
-        echo 512 > "$sdb/read_ahead_kb"
-    done
-    for sdc in /sys/block/sdc/queue
-    do
-        echo 0 > "$sdc/add_random"
-        echo 0 > "$sdc/iostats"
-        echo 2 > "$sdc/nomerges"
-        echo 2 > "$sdc/rq_affinity"
-        echo 0 > "$sdc/rotational"
-        echo 128 > "$sdc/nr_requests"
-        echo 512 > "$sdc/read_ahead_kb"
-    done
-    for dm0 in /sys/block/dm-0/queue
-    do
-        echo 0 > "$dm0/add_random"
-        echo 0 > "$dm0/iostats"
-        echo 2 > "$dm0/nomerges"
-        echo 2 > "$dm0/rq_affinity"
-        echo 0 > "$dm0/rotational"
-        echo 128 > "$dm0/nr_requests"
-        echo 512 > "$dm0/read_ahead_kb"
-    done
-    
-    # I/O scheduler
-    for queue in /sys/block/*/queue
-    do
-        echo 512 > "$queue/read_ahead_kb"
-        echo 128 > "$queue/nr_requests"
-        echo 2 > "$queue/rq_affinity"
-        echo 2 > "$dm0/nomerges"
-        echo 0 > "$queue/add_random"
-        echo 0 > "$queue/iostats"
-        echo 0 > "$dm0/rotational"
-    done
+for device in /sys/block/*
+do
+    if [ ! -d "$device/queue" ]; then
+        continue
+    fi
+    queue="$device/queue"
+    rotational=$(cat "$queue/rotational")
+    echo 0 > "$queue/add_random"
+    echo 0 > "$queue/iostats"
+    echo 2 > "$queue/nomerges"
+    echo 2 > "$queue/rq_affinity"
+    if [ "$rotational" -eq 0 ]; then
+        echo 0 > "$queue/rotational"
+    fi
+    echo 64 > "$queue/nr_requests"
+    echo 512 > "$queue/read_ahead_kb"
+done
 
 # Power Level
+for pl in /sys/devices/system/cpu/perf
+    do
+        echo 0 > "$pl/gpu_pmu_enable"
+        echo 100000 > "$pl/gpu_pmu_period"
+        echo 0 > "$pl/fuel_gauge_enable"
+        echo 0 > "$pl/enable"
+        echo 1 > "$pl/charger_enable"
+    done
 echo "on" > /sys/devices/system/cpu/power/control
-echo "0" > /sys/devices/system/cpu/perf/gpu_pmu_enable
-echo "100000" > /sys/devices/system/cpu/perf/gpu_pmu_period
-echo "0" > /sys/devices/system/cpu/perf/fuel_gauge_enable
-echo "teo" > /sys/devices/system/cpu/cpuidle/current_governor
-echo "0" > /sys/devices/system/cpu/perf/enable
-echo "1" > /sys/devices/system/cpu/perf/charger_enable
 
 # VirtualMemory
-echo "15" > /proc/sys/vm/dirty_background_ratio
-echo "25" > /proc/sys/vm/dirty_ratio
-echo "10" > /proc/sys/vm/vfs_cache_pressure
-echo "30" > /proc/sys/vm/dirty_expire_centisecs
-echo "50" > /proc/sys/vm/dirty_writeback_centisecs
-echo "0" > /proc/sys/vm/oom_dump_tasks
-echo "0" > /proc/sys/vm/page-cluster
-echo "0" > /proc/sys/vm/block_dump
-echo "10" > /proc/sys/vm/stat_interval
-echo "50" > /proc/sys/vm/compaction_proactiveness
-echo "0" > /proc/sys/vm/watermark_boost_factor
-echo "20" > /proc/sys/vm/watermark_scale_factor
-echo "35" > /dev/memcg/memory.swappiness
-echo "30" > /dev/memcg/apps/memory.swappiness
-echo "80" > /dev/memcg/system/memory.swappiness
-
+for vm in /proc/sys/vm
+    do
+        echo 15 > "$vm/dirty_background_ratio"
+        echo 30 > "$vm/dirty_ratio"
+        echo 60 > "$vm/vfs_cache_pressure"
+        echo 150 > "$vm/dirty_expire_centisecs"
+        echo 1000 > "$vm/dirty_writeback_centisecs"
+        echo 0 > "$vm/oom_dump_tasks"
+        echo 0 > "$vm/page-cluster"
+        echo 0 > "$vm/block_dump"
+        echo 10 > "$vm/stat_interval"
+        echo 0 > "$vm/compaction_proactiveness"
+        echo 1 > "$vm/watermark_boost_factor"
+        echo 10 > "$vm/watermark_scale_factor"
+        echo 2 > "$vm/drop_caches"
+    done
+    for sw in /dev/memcg
+    do
+        echo 50 > "$sw/memory.swappiness"
+    done
 # CPU SET
-echo "0-6" > /dev/cpuset/cpus
-echo "0-1" > /dev/cpuset/background/cpus
-echo "0-3" > /dev/cpuset/system-background/cpus
-echo "0-6" > /dev/cpuset/foreground/cpus
-echo "0-6" > /dev/cpuset/top-app/cpus
-echo "0-2" > /dev/cpuset/restricted/cpus
-echo "0-6" > /dev/cpuset/camera-daemon/cpus
-echo "0" > /dev/cpuset/memory_pressure_enabled
-
-su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' BATTERY MODE ACTIVITED 🔋 ' >/dev/null 2>&1
-
+for cs in /dev/cpuset
+    do
+        echo 0-6 > "$cs/cpus"
+        echo 0-2 > "$cs/background/cpus"
+        echo 0-6 > "$cs/system-background/cpus"
+        echo 0-6 > "$cs/foreground/cpus"
+        echo 0-6 > "$cs/top-app/cpus"
+        echo 0-2 > "$cs/restricted/cpus"
+        echo 0-7 > "$cs/camera-daemon/cpus"
+    done

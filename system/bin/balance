@@ -1,66 +1,58 @@
-#!/system/bin/sh
-#/magisk/modname/をハードコーディングしないでください...;代わりに $MODDIR ＃これにより、Magiskが将来マウントポイントを変更した場合でも、スクリプトに互換性があります。
-    
-# CPU SET
-for cpus in /sys/devices/system/cpu
-    do
-        echo 1 > "$cpus/cpu0/online"
-        echo 1 > "$cpus/cpu1/online"
-        echo 1 > "$cpus/cpu2/online"
-        echo 1 > "$cpus/cpu3/online"
-        echo 1 > "$cpus/cpu4/online"
-        echo 1 > "$cpus/cpu5/online"
-        echo 1 > "$cpus/cpu6/online"
-        echo 1 > "$cpus/cpu7/online"
-    done
-    
-# CPU Governor
-chmod 644 /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-chmod 644 /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo "5000" > /sys/devices/system/cpu/cpufreq/policy6/schedutil/rate_limit_us
-echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/rate_limit_us
 
-# GPU Configure
-echo "simple_ondemand" > /sys/class/devfreq/mtk-dvfsrc-devfreq/governor
-echo "simple_ondemand" > /sys/class/devfreq/13000000.mali/governor
+# CPU SET
+for cpu in /sys/devices/system/cpu/cpu[0-7]; do
+    echo 1 > "$cpu/online"
+done
+    
+for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+    chmod 644 "$policy/scaling_governor"
+    echo "schedutil" > "$policy/scaling_governor"
+    if [ -f "$policy/schedutil/rate_limit_us" ]; then
+        chmod 644 "$policy/schedutil/rate_limit_us"
+        echo "4000" > "$policy/schedutil/rate_limit_us"
+    fi
+done
+
+for device in /sys/class/devfreq/*; do
+    if [ -f "$device/governor" ]; then
+        chmod 644 "$device/governor"
+        echo "simple_ondemand" > "$device/governor"
+    fi
+done
+
+if [ -d /proc/gpufreq ]; then
+	apply "0" /proc/gpufreq/gpufreq_opp_freq 2>/dev/null
+elif [ -d /proc/gpufreqv2 ]; then
+	apply -1 /proc/gpufreqv2/fix_target_opp_index
+fi
+
 echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
-echo "-1" > /proc/gpufreqv2/fix_custom_freq_volt
+echo 1 > /proc/ppm/enabled
 
-# CPU SET
-chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
-chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
-for maf0 in /sys/devices/system/cpu
-    do
-        echo 1500000 > "$maf0/cpu0/cpufreq/scaling_max_freq"
-        echo 1500000 > "$maf0/cpu1/cpufreq/scaling_max_freq"
-        echo 1500000 > "$maf0/cpu2/cpufreq/scaling_max_freq"
-        echo 1500000 > "$maf0/cpu3/cpufreq/scaling_max_freq"
-        echo 1500000 > "$maf0/cpu4/cpufreq/scaling_max_freq"
-        echo 1500000 > "$maf0/cpu5/cpufreq/scaling_max_freq"
-    done
-    for mif0 in /sys/devices/system/cpu
-    do
-        echo 500000 > "$mif0/cpu0/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu1/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu2/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu3/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu4/cpufreq/scaling_min_freq"
-        echo 500000 > "$mif0/cpu5/cpufreq/scaling_min_freq"
-    done
-    for maf6 in /sys/devices/system/cpu
-    do
-        echo 22000000 > "$maf6/cpu6/cpufreq/scaling_max_freq"
-        echo 22000000 > "$maf6/cpu7/cpufreq/scaling_max_freq"
-    done
-    for mif6 in /sys/devices/system/cpu
-    do
-        echo 725000 > "$mif6/cpu6/cpufreq/scaling_min_freq"
-        echo 725000 > "$mif6/cpu7/cpufreq/scaling_min_freq"
-    done
-chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
-chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
+chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
+chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 1700000 > "$cpu/cpufreq/scaling_max_freq"
+done
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 500000 > "$cpu/cpufreq/scaling_min_freq"
+done
+chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
+chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+
+if [ -f "/proc/gpufreq/gpufreq_limit_table" ]; then
+    echo "ignore_batt_oc 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_percent 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_batt_low 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_thermal 0" >> /proc/gpufreq/gpufreq_limit_table
+    echo "ignore_pbm 0" >> /proc/gpufreq/gpufreq_limit_table
+fi
+
+echo 1 > /sys/devices/system/cpu/eas/enable
+echo 1 > /proc/cpufreq/cpufreq_power_mode
+echo 0 > /proc/cpufreq/cpufreq_cci_mode
+echo 0 > /proc/cpufreq/cpufreq_sched_disable
+echo 1 > /proc/gpufreq/gpufreq_power_limited
 
 # Dislowpower
 for dlp in /proc/displowpower
@@ -88,30 +80,23 @@ for sch in /proc/sys/kernel
         echo 3000000 > "$sch/sched_wakeup_granularity_ns"
         echo 30000000 > "$sch/sched_min_granularity_ns"
     done
+    
 for device in /sys/block/*
 do
-    # Skip if not a block device
     if [ ! -d "$device/queue" ]; then
         continue
     fi
-
     queue="$device/queue"
-    
-    # Check if the device is rotational (HDD) or non-rotational (SSD)
     rotational=$(cat "$queue/rotational")
-
     echo 0 > "$queue/add_random"
     echo 0 > "$queue/iostats"
     echo 2 > "$queue/nomerges"
     echo 2 > "$queue/rq_affinity"
-    
-    # If the device is SSD (rotational = 0), apply SSD-specific settings
     if [ "$rotational" -eq 0 ]; then
         echo 0 > "$queue/rotational"
     fi
-
-    echo 64 > "$queue/nr_requests"
-    echo 1028 > "$queue/read_ahead_kb"
+    echo 128 > "$queue/nr_requests"
+    echo 4096 > "$queue/read_ahead_kb"
 done
 
 # Power Level
@@ -130,7 +115,7 @@ for vm in /proc/sys/vm
     do
         echo 35 > "$vm/dirty_background_ratio"
         echo 30 > "$vm/dirty_ratio"
-        echo 100 > "$vm/vfs_cache_pressure"
+        echo 120 > "$vm/vfs_cache_pressure"
         echo 400 > "$vm/dirty_expire_centisecs"
         echo 6000 > "$vm/dirty_writeback_centisecs"
         echo 0 > "$vm/oom_dump_tasks"
@@ -161,5 +146,4 @@ for cs in /dev/cpuset
         echo 0 > "$cs/foreground/sched_load_balance"
     done
 
-su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVest' tag ' BALANCED MODE ACTIVITED 📊 ' >/dev/null 2>&1
 
