@@ -1,65 +1,42 @@
 #!/system/bin/sh
 #/magisk/modname/をハードコーディングしないでください...;代わりに $MODDIR ＃これにより、Magiskが将来マウントポイントを変更した場合でも、スクリプトに互換性があります。
 
-# CPU SET
-for cpus in /sys/devices/system/cpu
-    do
-        echo 1 > "$cpus/cpu0/online"
-        echo 1 > "$cpus/cpu1/online"
-        echo 1 > "$cpus/cpu2/online"
-        echo 1 > "$cpus/cpu3/online"
-        echo 1 > "$cpus/cpu4/online"
-        echo 1 > "$cpus/cpu5/online"
-        echo 1 > "$cpus/cpu6/online"
-        echo 1 > "$cpus/cpu7/online"
-    done
+for cpu in /sys/devices/system/cpu/cpu[0-7]; do
+    echo 1 > "$cpu/online"
+done
     
-#  Governor CPU0
-chmod 644 /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo "performance" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-#  Governor CPU6
-chmod 644 /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
-echo "performance" > /sys/devices/system/cpu/cpufreq/policy6/scaling_governor
+for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+    chmod 644 "$policy/scaling_governor"
+    echo "performance" > "$policy/scaling_governor"
+done
 
-# GPU Governor
-echo "performance" > /sys/class/devfreq/mtk-dvfsrc-devfreq/governor
-echo "performance" > /sys/class/devfreq/13000000.mali/governor
-echo "00" > /proc/gpufreqv2/fix_target_opp_index
+for device in /sys/class/devfreq/*; do
+    if [ -f "$device/governor" ]; then
+        chmod 644 "$device/governor"
+        echo "performance" > "$device/governor"
+    fi
+done
+
+if [ -d /proc/gpufreq ]; then
+	gpu_freq="$(cat /proc/gpufreq/gpufreq_opp_dump | grep -o 'freq = [0-9]*' | sed 's/freq = //' | sort -nr | head -n 1)"
+	apply "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
+elif [ -d /proc/gpufreqv2 ]; then
+	apply 0 /proc/gpufreqv2/fix_target_opp_index
+fi
+
 echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
+echo 0 > /proc/ppm/enabled
 
-# CPU SET
-chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
-chmod 644 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
-for maf0 in /sys/devices/system/cpu
-    do
-        echo 20000000 > "$maf0/cpu0/cpufreq/scaling_max_freq"
-        echo 20000000 > "$maf0/cpu1/cpufreq/scaling_max_freq"
-        echo 20000000 > "$maf0/cpu2/cpufreq/scaling_max_freq"
-        echo 20000000 > "$maf0/cpu3/cpufreq/scaling_max_freq"
-        echo 20000000 > "$maf0/cpu4/cpufreq/scaling_max_freq"
-        echo 20000000 > "$maf0/cpu5/cpufreq/scaling_max_freq"
-    done
-    for mif0 in /sys/devices/system/cpu
-    do
-        echo 20000000 > "$mif0/cpu0/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif0/cpu1/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif0/cpu2/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif0/cpu3/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif0/cpu4/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif0/cpu5/cpufreq/scaling_min_freq"
-    done
-    for maf6 in /sys/devices/system/cpu
-    do
-        echo 22000000 > "$maf6/cpu6/cpufreq/scaling_max_freq"
-        echo 22000000 > "$maf6/cpu7/cpufreq/scaling_max_freq"
-    done
-    for mif6 in /sys/devices/system/cpu
-    do
-        echo 20000000 > "$mif6/cpu6/cpufreq/scaling_min_freq"
-        echo 20000000 > "$mif6/cpu7/cpufreq/scaling_min_freq"
-    done
-chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_max_freq
-chmod 444 /sys/devices/system/cpu*/cpufreq/scaling_min_freq
+chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
+chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 99999999 > "$cpu/cpufreq/scaling_max_freq"
+done
+for cpu in /sys/devices/system/cpu/cpu[0-6]; do
+    echo 99999999 > "$cpu/cpufreq/scaling_min_freq"
+done
+chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
+chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
 
 # CPU SET
 for cs in /dev/cpuset
