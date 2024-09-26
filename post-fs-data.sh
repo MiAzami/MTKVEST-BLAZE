@@ -1,3 +1,7 @@
+#!/system/bin/sh
+# (C) Feravolt 2022
+# (C) fastbooteraselk 2024
+# Based on Brutal Busybox script.
 MODDIR=${0%/*}
 
 # Busybox functions
@@ -37,4 +41,5 @@ uninstall_busybox()
 #install_busybox
 
 #uninstall_busybox
+echo 3 > /proc/sys/vm/drop_caches
 
