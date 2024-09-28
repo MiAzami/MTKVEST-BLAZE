@@ -1,137 +1,191 @@
+#!/bin/sh
 
-for cpu in /sys/devices/system/cpu/cpu[2-3]; do
-    echo 1 > "$cpu/online"
-done
-    
+# Enable specific CPUs
+echo 0 > /sys/devices/system/cpu/cpu2/online
+echo 0 > /sys/devices/system/cpu/cpu3/online
+
+# Set CPU frequency governor to 'powersave'
 for policy in /sys/devices/system/cpu/cpufreq/policy*; do
-    chmod 644 "$policy/scaling_governor"
-    echo "powersave" > "$policy/scaling_governor"
-done
-
-for device in /sys/class/devfreq/*; do
-    if [ -f "$device/governor" ]; then
-        chmod 644 "$device/governor"
-        echo "powersave" > "$device/governor"
+    if echo "powersave" > "$policy/scaling_governor"; then
+        echo "Set governor for $policy to powersave"
+    else
+        echo "Failed to set governor for $policy"
     fi
 done
 
+# Set devfreq governor to 'powersave'
+for device in /sys/class/devfreq/*; do
+    if [ -f "$device/governor" ]; then
+        if echo "powersave" > "$device/governor"; then
+            echo "Set governor for $device to powersave"
+        else
+            echo "Failed to set governor for $device"
+        fi
+    fi
+done
+
+# Set GPU frequency
 if [ -d /proc/gpufreq ]; then
-	gpu_freq="$(cat /proc/gpufreq/gpufreq_opp_dump | grep -o 'freq = [0-9]*' | sed 's/freq = //' | sort -nr | head -n 1)"
-	apply "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
+    gpu_freq=$(grep -o 'freq = [0-9]*' /proc/gpufreq/gpufreq_opp_dump | sed 's/freq = //' | sort -nr | head -n 1)
+    echo "$gpu_freq" > /proc/gpufreq/gpufreq_opp_freq
 elif [ -d /proc/gpufreqv2 ]; then
-	apply 0 /proc/gpufreqv2/fix_target_opp_index
+    echo 0 > /proc/gpufreqv2/fix_target_opp_index
 fi
 
+# Modify PPM and other power settings
 echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
 echo 1 > /proc/ppm/enabled
 
+# Set permissions to allow read/write on frequency scaling
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
-for cpu in /sys/devices/system/cpu/cpu[0-6]; do
-    echo 1300000 > "$cpu/cpufreq/scaling_max_freq"
+
+# Manage frequency limits for CPU clusters
+cluster=0
+for path in /sys/devices/system/cpu/cpufreq/policy*; do
+    # Extract the available frequencies for this cluster
+    available_freqs=$(cat "$path/scaling_available_frequencies" 2>/dev/null)
+
+    if [ -n "$available_freqs" ]; then
+        # Get the minimum and maximum frequencies
+        max_freq=$(echo "$available_freqs" | cut -d' ' -f10)               # First frequency (lowest)
+        min_freq=$(echo "$available_freqs" | awk '{print $NF}')        # Last frequency (highest)
+
+        # Apply the minimum and maximum frequencies to the corresponding cluster's hard limits
+        echo "$cluster $min_freq" > /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        echo "$cluster $max_freq" > /proc/ppm/policy/hard_userlimit_max_cpu_freq
+
+        echo "Cluster $cluster: Set min frequency to $min_freq and max frequency to $max_freq"
+    else
+        echo "Cluster $cluster: No available frequencies found, skipping..."
+    fi
+
+    # Increment the cluster counter
+    cluster=$((cluster + 1))
 done
+
+# Loop through all CPU cores to manage individual CPU frequency settings
 for cpu in /sys/devices/system/cpu/cpu[0-6]; do
-    echo 1300000 > "$cpu/cpufreq/scaling_min_freq"
+    # Check if the cpufreq directory exists for this CPU
+    if [ -d "$cpu/cpufreq" ]; then
+        # Get the available frequencies for this CPU
+        available_freqs=$(cat "$cpu/cpufreq/scaling_available_frequencies" 2>/dev/null)
+
+        # If available frequencies are found
+        if [ -n "$available_freqs" ]; then
+            # Print the available frequencies for debugging
+            echo "Available frequencies for $cpu: $available_freqs"
+
+            # Get the highest and lowest frequencies
+            min_freq=$(echo "$available_freqs" | awk '{print $NF}')
+            max_freq=$(echo "$available_freqs" | cut -d' ' -f10)
+
+            # Set the maximum frequency
+            if echo "$max_freq" > "$cpu/cpufreq/scaling_max_freq"; then
+                echo "CPU $cpu: Set max frequency to $max_freq"
+            else
+                echo "CPU $cpu: Failed to set max frequency to $max_freq"
+            fi
+
+            # Set the minimum frequency
+            if echo "$min_freq" > "$cpu/cpufreq/scaling_min_freq"; then
+                echo "CPU $cpu: Set min frequency to $min_freq"
+            else
+                echo "CPU $cpu: Failed to set min frequency to $min_freq"
+            fi
+        else
+            echo "CPU $cpu: No available frequencies found, skipping..."
+        fi
+    else
+        echo "CPU $cpu: cpufreq directory not found, skipping..."
+    fi
 done
+
+# Reset permissions to read-only for scaling frequencies
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
 chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
 
+# Check if the gpufreq_limit_table file exists and append settings
 if [ -f "/proc/gpufreq/gpufreq_limit_table" ]; then
-    echo "ignore_batt_oc 0" >> /proc/gpufreq/gpufreq_limit_table
-    echo "ignore_batt_percent 0" >> /proc/gpufreq/gpufreq_limit_table
-    echo "ignore_batt_low 0" >> /proc/gpufreq/gpufreq_limit_table
-    echo "ignore_thermal 0" >> /proc/gpufreq/gpufreq_limit_table
-    echo "ignore_pbm 0" >> /proc/gpufreq/gpufreq_limit_table
+    {
+        echo "ignore_batt_oc 0"
+        echo "ignore_batt_percent 0"
+        echo "ignore_batt_low 0"
+        echo "ignore_thermal 0"
+        echo "ignore_pbm 0"
+    } >> /proc/gpufreq/gpufreq_limit_table
 fi
 
-echo 1 > /sys/devices/system/cpu/eas/enable
-echo 1 > /proc/cpufreq/cpufreq_power_mode
-echo 0 > /proc/cpufreq/cpufreq_cci_mode
-echo 0 > /proc/cpufreq/cpufreq_sched_disable
-echo 1 > /proc/gpufreq/gpufreq_power_limited
+# Set scheduler parameters
+echo 1000 > /proc/sys/kernel/sched_migration_cost_ns
+echo 75 > /proc/sys/kernel/perf_cpu_time_max_percent
+echo 100000 > /proc/sys/kernel/sched_latency_ns
+echo 256 > /proc/sys/kernel/sched_util_clamp_max
+echo 100 > /proc/sys/kernel/sched_util_clamp_min
+echo 1 > /proc/sys/kernel/sched_tunable_scaling
+echo 1 > /proc/sys/kernel/sched_child_runs_first
+echo 1 > /proc/sys/kernel/sched_energy_aware
+echo 10000 > /proc/sys/kernel/sched_util_clamp_min_rt_default
+echo 4194304 > /proc/sys/kernel/sched_deadline_period_max_us
+echo 100 > /proc/sys/kernel/sched_deadline_period_min_us
+echo 0 > /proc/sys/kernel/sched_schedstats
+echo 300000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+echo 30000 > /proc/sys/kernel/sched_min_granularity_ns
 
-#dislowpower
-echo "1" > /proc/displowpower/hrt_lp
-echo "1" > /proc/displowpower/idlevfp
-echo "50" > /proc/displowpower/idletime
-
-# scheduler
-for sch in /proc/sys/kernel
-    do
-        echo 1000 > "$sch/sched_migration_cost_ns"
-        echo 75 > "$sch/perf_cpu_time_max_percent"
-        echo 100000 > "$sch/sched_latency_ns"
-        echo 256 > "$sch/sched_util_clamp_max"
-        echo 100 > "$sch/sched_util_clamp_min"
-        echo 1 > "$sch/sched_tunable_scaling"
-        echo 1 > "$sch/sched_child_runs_first"
-        echo 1 > "$sch/sched_energy_aware"
-        echo 10000 > "$sch/sched_util_clamp_min_rt_default"
-        echo 4194304 > "$sch/sched_deadline_period_max_us"
-        echo 100 > "$sch/sched_deadline_period_min_us"
-        echo 0 > "$sch/sched_schedstats"
-        echo 300000 > "$sch/sched_wakeup_granularity_ns"
-        echo 30000 > "$sch/sched_min_granularity_ns"
-    done
-
-for device in /sys/block/*
-do
-    if [ ! -d "$device/queue" ]; then
-        continue
-    fi
-    queue="$device/queue"
-    rotational=$(cat "$queue/rotational")
+# Set block device parameters
+for queue in /sys/block/*/queue; do
     echo 0 > "$queue/add_random"
     echo 0 > "$queue/iostats"
     echo 2 > "$queue/nomerges"
     echo 2 > "$queue/rq_affinity"
-    if [ "$rotational" -eq 0 ]; then
-        echo 0 > "$queue/rotational"
-    fi
     echo 64 > "$queue/nr_requests"
     echo 512 > "$queue/read_ahead_kb"
+    [ "$(cat "$queue/rotational")" -eq 0 ] && echo 0 > "$queue/rotational"
 done
 
-# Power Level
-for pl in /sys/devices/system/cpu/perf
-    do
-        echo 0 > "$pl/gpu_pmu_enable"
-        echo 100000 > "$pl/gpu_pmu_period"
-        echo 0 > "$pl/fuel_gauge_enable"
-        echo 0 > "$pl/enable"
-        echo 1 > "$pl/charger_enable"
-    done
-echo "on" > /sys/devices/system/cpu/power/control
+# Set virtual memory settings
+echo 15 > /proc/sys/vm/dirty_background_ratio
+echo 30 > /proc/sys/vm/dirty_ratio
+echo 60 > /proc/sys/vm/vfs_cache_pressure
+echo 150 > /proc/sys/vm/dirty_expire_centisecs
+echo 1000 > /proc/sys/vm/dirty_writeback_centisecs
+echo 0 > /proc/sys/vm/oom_dump_tasks
+echo 0 > /proc/sys/vm/page-cluster
+echo 0 > /proc/sys/vm/block_dump
+echo 10 > /proc/sys/vm/stat_interval
+echo 0 > /proc/sys/vm/compaction_proactiveness
+echo 1 > /proc/sys/vm/watermark_boost_factor
+echo 10 > /proc/sys/vm/watermark_scale_factor
+echo 2 > /proc/sys/vm/drop_caches
+echo 80 > /proc/sys/vm/swappiness
+for sw in /dev/memcg
+do
+    echo 80 > "$sw/memory.swappiness"
+done
 
-# VirtualMemory
-for vm in /proc/sys/vm
-    do
-        echo 15 > "$vm/dirty_background_ratio"
-        echo 30 > "$vm/dirty_ratio"
-        echo 60 > "$vm/vfs_cache_pressure"
-        echo 150 > "$vm/dirty_expire_centisecs"
-        echo 1000 > "$vm/dirty_writeback_centisecs"
-        echo 0 > "$vm/oom_dump_tasks"
-        echo 0 > "$vm/page-cluster"
-        echo 0 > "$vm/block_dump"
-        echo 10 > "$vm/stat_interval"
-        echo 0 > "$vm/compaction_proactiveness"
-        echo 1 > "$vm/watermark_boost_factor"
-        echo 10 > "$vm/watermark_scale_factor"
-        echo 2 > "$vm/drop_caches"
-    done
-    for sw in /dev/memcg
-    do
-        echo 50 > "$sw/memory.swappiness"
-    done
-# CPU SET
+# Set CPU set adjustments
 for cs in /dev/cpuset
-    do
-        echo 0-6 > "$cs/cpus"
-        echo 0-2 > "$cs/background/cpus"
-        echo 0-6 > "$cs/system-background/cpus"
-        echo 0-6 > "$cs/foreground/cpus"
-        echo 0-6 > "$cs/top-app/cpus"
-        echo 0-2 > "$cs/restricted/cpus"
-        echo 0-7 > "$cs/camera-daemon/cpus"
-    done
+do
+    echo 0-6 > "$cs/cpus"
+    echo 0-2 > "$cs/background/cpus"
+    echo 0-6 > "$cs/system-background/cpus"
+    echo 0-6 > "$cs/foreground/cpus"
+    echo 0-6 > "$cs/top-app/cpus"
+    echo 0-2 > "$cs/restricted/cpus"
+    echo 0-7 > "$cs/camera-daemon/cpus"
+done
+
+# Set Power Level settings
+for pl in /sys/devices/system/cpu/perf
+do
+    echo 0 > "$pl/gpu_pmu_enable"
+    echo 100000 > "$pl/gpu_pmu_period"
+    echo 0 > "$pl/fuel_gauge_enable"
+    echo 0 > "$pl/enable"
+    echo 1 > "$pl/charger_enable"
+done
+
+# Disallow power saving mode for display
+echo "1" > /proc/displowpower/hrt_lp
+echo "1" > /proc/displowpower/idlevfp
+echo "50" > /proc/displowpower/idletime
