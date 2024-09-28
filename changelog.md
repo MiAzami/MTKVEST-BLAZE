@@ -1,18 +1,13 @@
 Telegram channel:
 https://t.me/mtkvestg99
 
-# v110
-- Added Options selector ( Advanced Settings FPSGO & Disable HW Overlays) 
-- Added function fastopen for TCP
-- Deleted some function FPSGO & GED 
-- Optimized Scheduler 
-- Optimized I/O
-- Used Default CPU Percent 
-- Deleted Prop Touch 
-- Deleted Some function prop
-
-# v111
-- Fix FPS 
-
-# v112
-- Deleted VSYNC
+# v120
+- Added hard_userlimit_min_cpu_freq / max
+- Added PPM
+- Added GPUFREQ LIMIT TABLE (/proc/gpufreq/)
+- Added EAS & Cpufreq power who support
+- Added DVFS Period & js Sched
+- Added Stuneboost
+- Added Selector Enable FPSGO
+- Disable dfps
+- Fix some function
