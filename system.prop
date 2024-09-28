@@ -4,18 +4,31 @@
 #commontweak
 
 persist.sys.phh.touch_hint=rotate
-ro.vendor.sleep.state=deep sleep
 ro.config.low_ram=false
 ro.ril.disable.power.collapse=0
 pm.sleep_mode=1
 ro.config.hw_power_saving=true
 ro.ril.sensor.sleep.control=1
 persist.sys.use_gpu_fps_counter=1
+persist.sys.gpu_perf_mode=1
 debug.performance.tuning=1
+debug.egl.force_msaa=0
+ro.tran_low_battery_60hz_refresh_rate.support=0
+ro.vendor.dfps.enable=false
+ro.vendor.smart_dfps.enable=false
+
+windowsmgr.max_events_per_sec=150
+ro.min_pointer_dur=3
+video.accelerate.hw=1
+view.scroll_friction=0
+logcat.live=disable
+persist.sys.scrollingcache=0
+touch.pressure.scale=0
 
 #AOSPTWEAK
 debug.cpurend.vsync=false
 debug.sf.predict_hwc_composition_strategy=0
+ro.hwui.render_ahead=40
 
 #Additional
 PERF_RES_NET_BT_AUDIO_LOW_LATENCY=1
@@ -28,6 +41,8 @@ PERF_RES_NET_MD_HSR_MODE=1
 dalvik.vm.systemuicompilerfilter=speed-profile 
 dalvik.vm.systemservercompilerfilter=speed-profile
 pm.dexopt.install=speed-profile
+persist.bg.dexopt.enable=true
+pm.dexopt.bg-dexopt=speed-profile
 
 # Zygote
 persist.zygote.preload_threads=3
@@ -47,17 +62,14 @@ persist.sys.dalvik.hyperthreading=true
 # 16bit
 persist.sys.use_16bpp_alpha=1
 
-# Dexopt
-persist.bg.dexopt.enable=true
-pm.dexopt.bg-dexopt=speed-profile
-dalvik.vm.dexopt-flags=v=n,o=a,u=y,m=y
-
 #SurfaceFlinger 
 debug.sf.disable_client_composition_cache=1
 debug.sf.latch_unsignaled=1
 debug.sf.disable_backpressure=1
 debug.sf.enable_gl_backpressure=0
 debug.sf.enable_hwc_vds=1
+
+debug.composition.type
 
 # Set GPU Turbo Boost configurations
 debug.enabletr

@@ -1,7 +1,6 @@
 #!/system/bin/sh
 #By MiAzami
-
-sync
+#!/bin/sh
 
 # Waiting for boot completed
 while [ "$(getprop sys.boot_completed | tr -d '\r')" != "1" ]; do sleep 5; done
@@ -108,6 +107,42 @@ fpsgo()
     echo "1" > /sys/pnpmgr/fpsgo_boost/fbt/ultra_rescue
 }
 
+fpsgo2() {
+    # Set FPSGO fstb parameters
+    echo 1 > /sys/kernel/fpsgo/fstb/boost_ta
+    echo 0 > /sys/kernel/fpsgo/fstb/enable_switch_sync_flag
+
+    # Set GPU boost level
+    echo 101 > /sys/kernel/ged/hal/gpu_boost_level
+
+    # Set GED parameters
+    echo 1 > /sys/module/ged/parameters/ged_smart_boost
+    echo 1 > /sys/module/ged/parameters/enable_gpu_boost
+    echo 1 > /sys/module/ged/parameters/ged_boost_enable
+    echo 1 > /sys/module/ged/parameters/boost_gpu_enable
+    echo 1 > /sys/module/ged/parameters/gpu_dvfs_enable
+    echo 1 > /sys/module/ged/parameters/gpu_idle
+    echo 0 > /sys/module/ged/parameters/is_GED_KPI_enabled
+
+    # Set additional GPU boost parameters
+    echo 1 > /sys/module/ged/parameters/gx_frc_mode
+    echo 1 > /sys/module/ged/parameters/gx_boost_on
+    echo 1 > /sys/module/ged/parameters/gx_game_mode
+    echo 1 > /sys/module/ged/parameters/gx_3D_benchmark_on
+    echo 1 > /sys/module/ged/parameters/cpu_boost_policy
+    echo 1 > /sys/module/ged/parameters/boost_extra
+
+    # Set PNPMGR parameters
+    echo 1 > /sys/pnpmgr/fpsgo_boost/boost_mode
+    echo 1 > /sys/pnpmgr/install
+    echo 1 > /sys/pnpmgr/mwn
+    echo 100 > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_quantile
+
+    # Set MTK FPSGo parameters
+    echo 1 > /sys/module/mtk_fpsgo/parameters/boost_affinity
+    echo 1 > /sys/module/mtk_fpsgo/parameters/boost_LR
+    echo 1 > /sys/module/mtk_fpsgo/parameters/xgf_uboost
+}
 
 # Enable all tweak
 
@@ -119,137 +154,92 @@ sync
 # Change zram
 #change_zram
 
-mali_dir=$(find /sys/devices/platform/soc/ -name "*mali*" -type d)
+#skiavk
+
+#skiagl
+
+#doverlay
+
+#fpsgo
+
+#fpsgo2
+
+# Find Mali GPU directory
+mali_dir=$(ls -d /sys/devices/platform/soc/*mali* 2>/dev/null)
+
 if [ -n "$mali_dir" ]; then
-    echo 1 > "$mali_dir/js_ctx_scheduling_mode"
-    echo 25 > "$mali_dir/js_scheduling_period"
-    echo 100 > "$mali_dir/dvfs_period"
-else
-    echo "Mali directory not found"
+    echo "Mali directory found at: $mali_dir"
+
+    # Set values directly if files exist
+    if [ -f "$mali_dir/js_ctx_scheduling_mode" ]; then
+        echo 1 > "$mali_dir/js_ctx_scheduling_mode" && echo "Successfully set $mali_dir/js_ctx_scheduling_mode to 1"
+    else
+        echo "$mali_dir/js_ctx_scheduling_mode not found"
+    fi
+
+    if [ -f "$mali_dir/js_scheduling_period" ]; then
+        echo 20 > "$mali_dir/js_scheduling_period" && echo "Successfully set $mali_dir/js_scheduling_period to 20"
+    else
+        echo "$mali_dir/js_scheduling_period not found"
+    fi
+
+    if [ -f "$mali_dir/dvfs_period" ]; then
+        echo 10 > "$mali_dir/dvfs_period" && echo "Successfully set $mali_dir/dvfs_period to 10"
+    else
+        echo "$mali_dir/dvfs_period not found"
+    fi
 fi
 
-write /proc/sys/kernel/sched_lib_name "com.miHoYo.,com.HoYoverse.,UnityMain,libunity.so"
-write /proc/sys/kernel/sched_lib_mask_force 255
 
+# Set kernel scheduler parameters for specific apps/libraries
+echo "com.miHoYo.,com.HoYoverse.,UnityMain,libunity.so" > /proc/sys/kernel/sched_lib_name
+echo 255 > /proc/sys/kernel/sched_lib_mask_force
+
+# Set the I/O scheduler to "deadline" for all block devices
 for device in /sys/block/*; do
-    if [ "$queue/scheduler" ]; then
+    queue="$device/queue"
+    if [ -f "$queue/scheduler" ]; then
         echo "deadline" > "$queue/scheduler"
     fi
 done
 
-# Set permissions for FPSGO FSTB parameters
-chmod 644 /sys/kernel/fpsgo/fstb/*
-fstb_params=(
-    "boost_ta"
-    "enable_switch_sync_flag"
-)
-
-for param in "${fstb_params[@]}"
-do
-    if [[ "$param" == "enable_switch_sync_flag" ]]; then
-        echo 0 > "/sys/kernel/fpsgo/fstb/$param"
+for path in /dev/stune/*; do
+    echo 35 > "$path/schedtune.boost"
+    echo 0 > "$path/schedtune.prefer_idle"
+    echo 0 > "$path/schedtune.colocate"
+    if [[ "$(basename "$path")" == "background" || "$(basename "$path")" == "foreground" ]]; then
+        echo 1 > "$path/schedtune.sched_boost_enabled"
     else
-        echo 1 > "/sys/kernel/fpsgo/fstb/$param"
-    fi
-done
-chmod 444 /sys/kernel/fpsgo/fstb/*
-
-# Set GPU boost level in GED HAL
-echo 101 > /sys/kernel/ged/hal/gpu_boost_level
-ged_params=(
-    "ged_smart_boost"
-    "enable_gpu_boost"
-    "ged_boost_enable"
-    "boost_gpu_enable"
-    "gpu_dvfs_enable"
-    "gpu_idle"
-    "is_GED_KPI_enabled"
-)
-
-for param in "${ged_params[@]}"
-do
-    if [[ "$param" == "is_GED_KPI_enabled" ]]; then
-        echo 0 > "/sys/module/ged/parameters/$param"
-    else
-        echo 1 > "/sys/module/ged/parameters/$param"
+        echo 0 > "$path/schedtune.sched_boost_enabled"
     fi
 done
 
-# Apply additional settings for GPU boost
-additional_params=(
-    "gx_frc_mode"
-    "gx_boost_on"
-    "gx_game_mode"
-    "gx_3D_benchmark_on"
-    "cpu_boost_policy"
-    "boost_extra"
-)
-
-for param in "${additional_params[@]}"
-do
-    echo 1 > "/sys/module/ged/parameters/$param"
-done
-
-# FPSGo (PNPMGR) settings
-pnpmgr_params=(
-    "fpsgo_boost/boost_mode"
-    "install"
-    "mwn"
-    "fpsgo_boost/fstb/fstb_tune_quantile"
-)
-
-for param in "${pnpmgr_params[@]}"
-do
-    if [[ "$param" == "fpsgo_boost/fstb/fstb_tune_quantile" ]]; then
-        echo 100 > "/sys/pnpmgr/$param"
-    else
-        echo 1 > "/sys/pnpmgr/$param"
-    fi
-done
-
-# MTK FPSGo parameters
-mtk_fpsgo_params=(
-    "boost_affinity"
-    "boost_LR"
-    "xgf_uboost"
-)
-
-for param in "${mtk_fpsgo_params[@]}"
-do
-    echo 1 > "/sys/module/mtk_fpsgo/parameters/$param"
-done
-    
-stune_paths=("background" "foreground" "rt" "top-app" "")
-boost_enabled_values=(1 1 0 0 0)
-
-for i in "${!stune_paths[@]}"; do
-  path=${stune_paths[$i]}
-  boost_enabled=${boost_enabled_values[$i]}
-  
-  echo "35" > "/dev/stune/$path/schedtune.boost"
-  echo "0" > "/dev/stune/$path/schedtune.prefer_idle"
-  echo "0" > "/dev/stune/$path/schedtune.colocate"
-  echo "$boost_enabled" > "/dev/stune/$path/schedtune.sched_boost_enabled"
-done
-
+# Disable fsync
 echo N > /sys/module/sync/parameters/fsync_enabled
 
-#printk
+# Kernel performance configuration
 echo "0 0 0 0" > /proc/sys/kernel/printk
-echo "1" > /sys/module/printk/parameters/console_suspend
-echo "1" > /sys/module/printk/parameters/ignore_loglevel
-echo "0" > /sys/module/printk/parameters/time
 echo "off" > /proc/sys/kernel/printk_devkmsg
+echo "Y" > /sys/module/printk/parameters/console_suspend
+echo "N" > /sys/module/printk/parameters/cpu
+echo "0" > /sys/kernel/printk_mode/printk_mode
+echo "Y" > /sys/module/printk/parameters/ignore_loglevel
+echo "N" > /sys/module/printk/parameters/pid
+echo "N" > /sys/module/printk/parameters/time
+echo "1" > /proc/sys/kernel/sched_child_runs_first
+echo "0" > /sys/kernel/ccci/debug
 
-# Networking tweaks
+# Networking tweaks for low latency
 echo "cubic" > /proc/sys/net/ipv4/tcp_congestion_control
-echo "1" > /proc/sys/net/ipv4/tcp_low_latency
-echo "1" > /proc/sys/net/ipv4/tcp_ecn
-echo "1" > /proc/sys/net/ipv4/tcp_sack
-echo "1" > /proc/sys/net/ipv4/tcp_timestamps
-echo "3" > /proc/sys/net/ipv4/tcp_fastopen
+echo 1 > /proc/sys/net/ipv4/tcp_low_latency
+echo 1 > /proc/sys/net/ipv4/tcp_ecn
+echo 1 > /proc/sys/net/ipv4/tcp_sack
+echo 1 > /proc/sys/net/ipv4/tcp_timestamps
+echo 3 > /proc/sys/net/ipv4/tcp_fastopen
 
-# Done
+#additional
+echo "0-7" > /proc/irq/240/smp_affinity_list
+
 sleep 1
 
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST BLAZE' tag 'Tweak Applied'" >/dev/null 2>&1
