@@ -105,6 +105,9 @@ fpsgo()
     echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_opp_f
     echo "90" > /sys/pnpmgr/fpsgo_boost/fbt/rescue_percent
     echo "1" > /sys/pnpmgr/fpsgo_boost/fbt/ultra_rescue
+    echo 100 > /sys/module/ged/parameters/gpu_cust_upbound_freq
+    echo 100 > /sys/module/ged/parameters/gpu_cust_boost_freq
+    echo 100 > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_quantile
 }
 
 fpsgo2() {
@@ -136,7 +139,6 @@ fpsgo2() {
     echo 1 > /sys/pnpmgr/fpsgo_boost/boost_mode
     echo 1 > /sys/pnpmgr/install
     echo 1 > /sys/pnpmgr/mwn
-    echo 100 > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_quantile
 
     # Set MTK FPSGo parameters
     echo 1 > /sys/module/mtk_fpsgo/parameters/boost_affinity
