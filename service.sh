@@ -164,33 +164,6 @@ sync
 
 #fpsgo2
 
-# Find Mali GPU directory
-mali_dir=$(ls -d /sys/devices/platform/soc/*mali* 2>/dev/null)
-
-if [ -n "$mali_dir" ]; then
-    echo "Mali directory found at: $mali_dir"
-
-    # Set values directly if files exist
-    if [ -f "$mali_dir/js_ctx_scheduling_mode" ]; then
-        echo 1 > "$mali_dir/js_ctx_scheduling_mode" && echo "Successfully set $mali_dir/js_ctx_scheduling_mode to 1"
-    else
-        echo "$mali_dir/js_ctx_scheduling_mode not found"
-    fi
-
-    if [ -f "$mali_dir/js_scheduling_period" ]; then
-        echo 20 > "$mali_dir/js_scheduling_period" && echo "Successfully set $mali_dir/js_scheduling_period to 20"
-    else
-        echo "$mali_dir/js_scheduling_period not found"
-    fi
-
-    if [ -f "$mali_dir/dvfs_period" ]; then
-        echo 10 > "$mali_dir/dvfs_period" && echo "Successfully set $mali_dir/dvfs_period to 10"
-    else
-        echo "$mali_dir/dvfs_period not found"
-    fi
-fi
-
-
 # Set kernel scheduler parameters for specific apps/libraries
 echo "com.miHoYo.,com.HoYoverse.,UnityMain,libunity.so" > /proc/sys/kernel/sched_lib_name
 echo 255 > /proc/sys/kernel/sched_lib_mask_force
@@ -200,17 +173,6 @@ for device in /sys/block/*; do
     queue="$device/queue"
     if [ -f "$queue/scheduler" ]; then
         echo "deadline" > "$queue/scheduler"
-    fi
-done
-
-for path in /dev/stune/*; do
-    echo 35 > "$path/schedtune.boost"
-    echo 0 > "$path/schedtune.prefer_idle"
-    echo 0 > "$path/schedtune.colocate"
-    if [[ "$(basename "$path")" == "background" || "$(basename "$path")" == "foreground" ]]; then
-        echo 1 > "$path/schedtune.sched_boost_enabled"
-    else
-        echo 0 > "$path/schedtune.sched_boost_enabled"
     fi
 done
 
