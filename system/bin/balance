@@ -212,3 +212,18 @@ do
     echo 0 > "$cs/sched_load_balance"
     echo 0 > "$cs/foreground/sched_load_balance"
 done
+
+for path in /dev/stune/*; do
+    base=$(basename "$path")
+    
+    if [[ "$base" == "top-app" || "$base" == "foreground" ]]; then
+        echo 20 > "$path/schedtune.boost"
+        echo 1 > "$path/schedtune.sched_boost_enabled"
+    else
+        echo 10 > "$path/schedtune.boost"
+        echo 0 > "$path/schedtune.sched_boost_enabled"
+    fi
+    
+    echo 0 > "$path/schedtune.prefer_idle"
+    echo 0 > "$path/schedtune.colocate"
+done
