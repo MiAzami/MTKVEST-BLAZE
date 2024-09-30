@@ -161,8 +161,8 @@ done
 echo 500000 > /proc/sys/kernel/sched_migration_cost_ns
 echo 10 > /proc/sys/kernel/perf_cpu_time_max_percent
 echo 10000000 > /proc/sys/kernel/sched_latency_ns
-echo 1000 > /proc/sys/kernel/sched_util_clamp_max
-echo 512 > /proc/sys/kernel/sched_util_clamp_min
+echo 1024 > /proc/sys/kernel/sched_util_clamp_max
+echo 1024 > /proc/sys/kernel/sched_util_clamp_min
 echo 2 > /proc/sys/kernel/sched_tunable_scaling
 echo 1 > /proc/sys/kernel/sched_child_runs_first
 echo 0 > /proc/sys/kernel/sched_energy_aware
