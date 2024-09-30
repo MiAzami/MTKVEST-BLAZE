@@ -150,9 +150,6 @@ fpsgo2() {
 
 su -lp 2000 -c "cmd notification post -S bigtext -t 'MTKVEST BLAZE' tag 'Waiting to Apply'" >/dev/null 2>&1
 
-# Sync to data in the rare case a device crashes
-sync
-
 # Change zram
 #change_zram
 
