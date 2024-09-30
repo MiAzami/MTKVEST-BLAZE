@@ -110,7 +110,8 @@ fpsgo()
     echo 100 > /sys/pnpmgr/fpsgo_boost/fstb/fstb_tune_quantile
 }
 
-fpsgo2() {
+fpsgo2()
+{
     # Set FPSGO fstb parameters
     echo 1 > /sys/kernel/fpsgo/fstb/boost_ta
     echo 0 > /sys/kernel/fpsgo/fstb/enable_switch_sync_flag
