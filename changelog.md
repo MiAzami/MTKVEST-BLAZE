@@ -11,3 +11,11 @@ https://t.me/mtkvestg99
 - Added Selector Enable FPSGO
 - Disable dfps
 - Fix some function
+
+# v122
+- Deleted some prop Advanced GPU
+- Deleted some prop useless
+- Moved DVFS Period & Schedboost on Mode
+- Added CPU Compotitions
+- Fix some typo
+- etc
