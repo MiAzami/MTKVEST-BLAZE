@@ -13,24 +13,48 @@ persist.sys.use_gpu_fps_counter=1
 persist.sys.gpu_perf_mode=1
 debug.performance.tuning=1
 debug.egl.force_msaa=0
-ro.tran_low_battery_60hz_refresh_rate.support=0
 debug.cpurend.vsync=false
+debug.sf.frame_rate_multiple_threshold=120
+debug.sf.use_phase_offsets_as_durations=1
+debug.sf.hwc_hdcp_via_neg_vsync=1
+debug.sf.hwc_hotplug_error_via_neg_vsync=1
+
+# TranssionsProp
+ro.transsion.sf.fling.boost.support=1
+ro.transsion.cpubooster.group=1
+ro.transsion.launcher_boost_scene_support=1
+ro.tran_high_temperature_fps.support=1
+ro.transsion.cpubooster.heavy_loading.support=1
+ro.tran_fake_vsync.support=1
+ro.esports.thermal_config.support=1
+ro.os_game_tp_esports10.support=1
+ro.os_game_tp_esports20.support=1
+ro.os_game_tp_optimization.support=1
+ro.os_game_network_acceleration.support=1
+ro.tran.game_e_sport_mode.support=1
+persist.sys.surfaceflinger.idle_reduce_framerate_enable=true
+debug.sf.set_touch_timer_ms=100
+vendor.boostfwk.transsion.frameprefetcher=1
+ro.tran_aod_half_screen_support=0
+ro.transsion.disable_sf_sched=1
 
 # Touch
-windowsmgr.max_events_per_sec=120
+windowsmgr.max_events_per_sec=100
 ro.min_pointer_dur=3
 video.accelerate.hw=1
 view.scroll_friction=0
-logcat.live=disable
-persist.sys.scrollingcache=0
-touch.pressure.scale=0
-
-#Additional
-PERF_RES_NET_BT_AUDIO_LOW_LATENCY=1
-PERF_RES_NET_WIFI_LOW_LATENCY=1
-PERF_RES_NET_MD_WEAK_SIG_OPT=1
-PERF_RES_NET_NETD_BOOST_UID=1
-PERF_RES_NET_MD_HSR_MODE=1
+persist.sys.scrollingcache=1
+touch.pressure.scale=0.001
+persist.sys.ui.hw=1
+view.scroll_friction=10
+touch.size.scale=1
+touch.size.bias=0
+touch.size.isSummed=0
+touch.distance.scale=0
+MultitouchSettleInterval=0.1ms
+MultitouchMinDistance=1px
+TapInterval=0.1ms
+TapSlop=1px
 
 #dexoat
 dalvik.vm.systemuicompilerfilter=speed-profile 
@@ -51,9 +75,6 @@ ro.mtk_perf_simple_start_win=1
 # Dalvik Hyperthread
 persist.sys.dalvik.multithread=true
 persist.sys.dalvik.hyperthreading=true
-
-# 16bit
-persist.sys.use_16bpp_alpha=1
 
 #SurfaceFlinger 
 debug.sf.disable_client_composition_cache=1
