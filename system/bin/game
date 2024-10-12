@@ -1,31 +1,5 @@
 #!/bin/sh
 
-# Find Mali GPU directory
-mali_dir=$(ls -d /sys/devices/platform/soc/*mali* 2>/dev/null)
-
-if [ -n "$mali_dir" ]; then
-    echo "Mali directory found at: $mali_dir"
-
-    # Set values directly if files exist
-    if [ -f "$mali_dir/js_ctx_scheduling_mode" ]; then
-        echo 1 > "$mali_dir/js_ctx_scheduling_mode" && echo "Successfully set $mali_dir/js_ctx_scheduling_mode to 1"
-    else
-        echo "$mali_dir/js_ctx_scheduling_mode not found"
-    fi
-
-    if [ -f "$mali_dir/js_scheduling_period" ]; then
-        echo 20 > "$mali_dir/js_scheduling_period" && echo "Successfully set $mali_dir/js_scheduling_period to 20"
-    else
-        echo "$mali_dir/js_scheduling_period not found"
-    fi
-
-    if [ -f "$mali_dir/dvfs_period" ]; then
-        echo 10 > "$mali_dir/dvfs_period" && echo "Successfully set $mali_dir/dvfs_period to 10"
-    else
-        echo "$mali_dir/dvfs_period not found"
-    fi
-fi
-
 # Enable CPUs
 for cpu in /sys/devices/system/cpu/cpu[0-7]; do
     echo 1 > "$cpu/online"
@@ -50,75 +24,17 @@ if [ -d /proc/gpufreq ]; then
     gpu_freq=$(grep -o 'freq = [0-9]*' /proc/gpufreq/gpufreq_opp_dump | sed 's/freq = //' | sort -nr | head -n 1)
     apply "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
 elif [ -d /proc/gpufreqv2 ]; then
-    apply 0 /proc/gpufreqv2/fix_target_opp_index
+    apply 00 /proc/gpufreqv2/fix_target_opp_index
 fi
 
 # Additional GPU settings
 echo "coarse_demand" > /sys/class/misc/mali0/device/power_policy
-echo 0 > /proc/ppm/enabled
 
-# Set permissions to allow read/write on frequency scaling
-chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
-chmod 644 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
-
-# Manage frequency limits for CPU clusters
-cluster=0
-for path in /sys/devices/system/cpu/cpufreq/policy*; do
-    # Extract the first (minimum) frequency and the last (maximum) frequency
-    min_freq=$(cut -d' ' -f1 "$path/scaling_available_frequencies")
-    max_freq=$(awk '{print $NF}' "$path/scaling_available_frequencies")
-
-    # Apply the minimum and maximum frequencies to the corresponding cluster's hard limits
-    echo "$cluster $min_freq" > /proc/ppm/policy/hard_userlimit_min_cpu_freq
-    echo "$cluster $max_freq" > /proc/ppm/policy/hard_userlimit_max_cpu_freq
-
-    echo "Cluster $cluster: Set min frequency to $min_freq and max frequency to $max_freq"
-
-    # Increment the cluster counter
-    cluster=$((cluster + 1))
-done
-
-# Loop through all CPU cores to manage individual CPU frequency settings
-for cpu in /sys/devices/system/cpu/cpu[0-6]; do
-    # Check if the cpufreq directory exists for this CPU
-    if [ -d "$cpu/cpufreq" ]; then
-        # Get the available frequencies for this CPU
-        available_freqs=$(cat "$cpu/cpufreq/scaling_available_frequencies" 2>/dev/null)
-
-        # If available frequencies are found
-        if [ -n "$available_freqs" ]; then
-            # Print the available frequencies for debugging
-            echo "Available frequencies for $cpu: $available_freqs"
-
-            # Set maximum frequency based on specific conditions
-            first_freq=$(cut -d' ' -f1 "$cpu/cpufreq/scaling_available_frequencies")
-
-            if [[ "$available_freqs" == *"$first_freq"* ]]; then
-                echo "$first_freq" > "$cpu/cpufreq/scaling_max_freq"
-                echo "CPU $cpu: Set max frequency to $first_freq"
-            else
-                echo "No suitable frequency found, skipping max freq setting for $cpu"
-            fi
-
-            # Set the minimum frequency to the first frequency extracted
-            echo "$first_freq" > "$cpu/cpufreq/scaling_min_freq"
-            if [ $? -eq 0 ]; then
-                echo "CPU $cpu: Set min frequency to $first_freq"
-            else
-                echo "CPU $cpu: Failed to set min frequency to $first_freq"
-            fi
-        else
-            echo "CPU $cpu: No available frequencies found, skipping..."
-        fi
-    else
-        echo "CPU $cpu: cpufreq directory not found, skipping..."
-    fi
-done
-
-# Reset permissions to read-only for scaling frequencies
-chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_max_freq
-chmod 444 /sys/devices/system/cpu/*/cpufreq/scaling_min_freq
-
+echo 2 0 > /proc/ppm/policy_status  # Disable FORCE_LIMIT
+echo 3 0 > /proc/ppm/policy_status  # Disable PWR_THRO
+echo 4 0 > /proc/ppm/policy_status  # Disable THERMAL
+echo 7 0 > /proc/ppm/policy_status  # Disable USER_LIMIT
+echo 9 1 > /proc/ppm/policy_status  # Enable SYS_BOOST
 
 # GPU frequency limit table
 if [ -f "/proc/gpufreq/gpufreq_limit_table" ]; then
@@ -144,9 +60,9 @@ do
     echo 0-7 > "$cs/top-app/cpus"
     echo 0-5 > "$cs/restricted/cpus"
     echo 0-7 > "$cs/camera-daemon/cpus"
-    echo 0 > "$cs/memory_pressure_enabled"
+    echo 1 > "$cs/memory_pressure_enabled"
     echo 0 > "$cs/sched_load_balance"
-    echo 0 > "$cs/foreground/sched_load_balance"
+    echo 1 > "$cs/foreground/sched_load_balance"
 done
 
 # Disallow power saving mode for display
@@ -157,17 +73,21 @@ do
     echo 100 > "$dlp/idletime"
 done
 
+echo 100 > /dev/cpuctl/foreground/cpu.uclamp.min
+echo 100 > /dev/cpuctl/top-app/cpu.uclamp.min
+echo 100 > /dev/cpuctl/pnpmgr_fg/cpu.uclamp.min
+
 # Scheduler settings
 echo 500000 > /proc/sys/kernel/sched_migration_cost_ns
-echo 10 > /proc/sys/kernel/perf_cpu_time_max_percent
+echo 5 > /proc/sys/kernel/perf_cpu_time_max_percent
 echo 10000000 > /proc/sys/kernel/sched_latency_ns
 echo 1024 > /proc/sys/kernel/sched_util_clamp_max
 echo 1024 > /proc/sys/kernel/sched_util_clamp_min
 echo 2 > /proc/sys/kernel/sched_tunable_scaling
 echo 1 > /proc/sys/kernel/sched_child_runs_first
 echo 0 > /proc/sys/kernel/sched_energy_aware
-echo 250000 > /proc/sys/kernel/sched_util_clamp_min_rt_default
-echo 2000000 > /proc/sys/kernel/sched_deadline_period_max_us
+echo 1024 > /proc/sys/kernel/sched_util_clamp_min_rt_default
+echo 200 > /proc/sys/kernel/sched_deadline_period_max_us
 echo 100 > /proc/sys/kernel/sched_deadline_period_min_us
 echo 0 > /proc/sys/kernel/sched_schedstats
 echo 3000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
@@ -182,7 +102,7 @@ do
     echo 2 > "$device/queue/nomerges"
     echo 2 > "$device/queue/rq_affinity"
     echo 128 > "$device/queue/nr_requests"
-    echo 4096 > "$device/queue/read_ahead_kb"
+    echo 2048 > "$device/queue/read_ahead_kb"
     [ "$(cat "$device/queue/rotational")" -eq 0 ] && echo 0 > "$device/queue/rotational"
 done
 
@@ -190,14 +110,13 @@ done
 for pl in /sys/devices/system/cpu/perf
 do
     echo 1 > "$pl/gpu_pmu_enable"
-    echo 1000000 > "$pl/gpu_pmu_period"
     echo 1 > "$pl/fuel_gauge_enable"
     echo 1 > "$pl/enable"
     echo 1 > "$pl/charger_enable"
 done
 
 # Virtual memory settings
-echo 10 > /proc/sys/vm/dirty_background_ratio
+echo 4 > /proc/sys/vm/dirty_background_ratio
 echo 15 > /proc/sys/vm/dirty_ratio
 echo 180 > /proc/sys/vm/vfs_cache_pressure
 echo 3000 > /proc/sys/vm/dirty_expire_centisecs
@@ -208,15 +127,8 @@ echo 0 > /proc/sys/vm/block_dump
 echo 10 > /proc/sys/vm/stat_interval
 echo 0 > /proc/sys/vm/compaction_proactiveness
 echo 1 > /proc/sys/vm/watermark_boost_factor
-echo 30 > /proc/sys/vm/watermark_scale_factor
 echo 3 > /proc/sys/vm/drop_caches
-echo 30 > /proc/sys/vm/swappiness
-
-# Memory control group swappiness
-for sw in /dev/memcg
-do
-    echo 30 > "$sw/memory.swappiness"
-done
+echo 10 > /proc/sys/vm/swappiness
 
 for path in /dev/stune/*; do
     base=$(basename "$path")
